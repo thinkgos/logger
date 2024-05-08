@@ -20,13 +20,13 @@ zap logger with lumberjack
 Use go get.
 
 ```bash
-    go get github.com/things-go/loggerger
+    go get github.com/things-go/logger
 ```
 
 Then import the package into your own code.
 
 ```bash
-    import "github.com/things-go/loggerger"
+    import "github.com/things-go/logger"
 ```
 
 ### 示例

@@ -122,14 +122,15 @@ func toEncodeLevel(l string) zapcore.LevelEncoder {
 }
 
 func toWriter(c *Config) zapcore.WriteSyncer {
+	cf := c.File
 	fileWriter := func() zapcore.WriteSyncer {
 		return zapcore.AddSync(&lumberjack.Logger{ // 文件切割
-			Filename:   filepath.Join(c.Path, c.Filename),
-			MaxSize:    c.MaxSize,
-			MaxAge:     c.MaxAge,
-			MaxBackups: c.MaxBackups,
-			LocalTime:  c.LocalTime,
-			Compress:   c.Compress,
+			Filename:   filepath.Join(cf.Path, cf.Filename),
+			MaxSize:    cf.MaxSize,
+			MaxAge:     cf.MaxAge,
+			MaxBackups: cf.MaxBackups,
+			LocalTime:  cf.LocalTime,
+			Compress:   cf.Compress,
 		})
 	}
 	stdoutWriter := func() zapcore.WriteSyncer {

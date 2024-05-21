@@ -6,6 +6,25 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+type LumberjackFile struct {
+	// Path 日志保存路径, 默认 empty, 即当前路径
+	Path string `yaml:"path" json:"path"`
+	// see https://github.com/natefinch/lumberjack
+	// lumberjack.Log
+	// Filename 空字符使用默认, 默认<processname>-lumberjack.log
+	Filename string `yaml:"filename" json:"filename"`
+	// MaxSize 每个日志文件最大尺寸(MB), 默认100MB
+	MaxSize int `yaml:"maxSize" json:"maxSize"`
+	// MaxAge 日志文件保存天数, 默认0 不删除
+	MaxAge int `yaml:"maxAge" json:"maxAge"`
+	// MaxBackups 日志文件保存备份数, 默认0 都保存
+	MaxBackups int `yaml:"maxBackups" json:"maxBackups"`
+	// LocalTime 是否格式化时间戳, 默认UTC时间
+	LocalTime bool `yaml:"localTime" json:"localTime"`
+	// Compress 是否使用gzip压缩文件, 采用默认不压缩
+	Compress bool `yaml:"compress" json:"compress"`
+}
+
 // Config 日志配置
 type Config struct {
 	// Level 日志等级, debug,info,warn,error,dpanic,panic,fatal, 默认warn
@@ -22,28 +41,13 @@ type Config struct {
 	Adapter string `yaml:"adapter" json:"adapter"`
 	// Stack 是否使能栈调试输出, 默认false
 	Stack bool `yaml:"stack" json:"stack"`
-	// Path 日志保存路径, 默认 empty, 即当前路径
-	Path string `yaml:"path" json:"path"`
 	// Writer 输出
 	// 当adapter有附带custom时, 如果为writer为空, 将使用os.Stdout
 	Writer []io.Writer `yaml:"-" json:"-"`
 	// EncoderConfig 如果配置该项,则 EncodeLevel 将被覆盖
 	EncoderConfig *zapcore.EncoderConfig `yaml:"-" json:"-"`
-
-	// see https://github.com/natefinch/lumberjack
-	// lumberjack.Log
-	// Filename 空字符使用默认, 默认<processname>-lumberjack.log
-	Filename string `yaml:"filename" json:"filename"`
-	// MaxSize 每个日志文件最大尺寸(MB), 默认100MB
-	MaxSize int `yaml:"maxSize" json:"maxSize"`
-	// MaxAge 日志文件保存天数, 默认0 不删除
-	MaxAge int `yaml:"maxAge" json:"maxAge"`
-	// MaxBackups 日志文件保存备份数, 默认0 都保存
-	MaxBackups int `yaml:"maxBackups" json:"maxBackups"`
-	// LocalTime 是否格式化时间戳, 默认UTC时间
-	LocalTime bool `yaml:"localTime" json:"localTime"`
-	// Compress 是否使用gzip压缩文件, 采用默认不压缩
-	Compress bool `yaml:"compress" json:"compress"`
+	// 文件配置, 仅Adapter有file时有效
+	File LumberjackFile `yaml:"file" json:"file"`
 }
 
 // Option An Option configures a Log.
@@ -99,7 +103,7 @@ func WithStack(stack bool) Option {
 // WithPath with path
 // 日志保存路径, 默认 empty, 即当前路径
 func WithPath(path string) Option {
-	return func(c *Config) { c.Path = path }
+	return func(c *Config) { c.File.Path = path }
 }
 
 /******************************** lumberjack.Log **************************************/
@@ -107,35 +111,35 @@ func WithPath(path string) Option {
 // WithFilename with filename
 // 空字符使用默认, 默认<processname>-lumberjack.log
 func WithFilename(filename string) Option {
-	return func(c *Config) { c.Filename = filename }
+	return func(c *Config) { c.File.Filename = filename }
 }
 
 // WithMaxSize with max size
 // 每个日志文件最大尺寸(MB), 默认100MB
 func WithMaxSize(maxSize int) Option {
-	return func(c *Config) { c.MaxSize = maxSize }
+	return func(c *Config) { c.File.MaxSize = maxSize }
 }
 
 // WithMaxAge with max age
 // 日志文件保存天数, 默认0 不删除
 func WithMaxAge(maxAge int) Option {
-	return func(c *Config) { c.MaxAge = maxAge }
+	return func(c *Config) { c.File.MaxAge = maxAge }
 }
 
 // WithMaxBackups with max backup
 // 日志文件保存备份数, 默认0 都保存
 func WithMaxBackups(maxBackups int) Option {
-	return func(c *Config) { c.MaxBackups = maxBackups }
+	return func(c *Config) { c.File.MaxBackups = maxBackups }
 }
 
 // WithEnableLocalTime with local time
 // 是否格式化时间戳, 默认UTC时间
 func WithEnableLocalTime() Option {
-	return func(c *Config) { c.LocalTime = true }
+	return func(c *Config) { c.File.LocalTime = true }
 }
 
 // WithEnableCompress with compress
 // 是否使用gzip压缩文件, 采用默认不压缩
 func WithEnableCompress() Option {
-	return func(c *Config) { c.Compress = true }
+	return func(c *Config) { c.File.Compress = true }
 }

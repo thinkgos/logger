@@ -40,13 +40,13 @@ func main() {
 	_ = err
 	logger.DebugContext(ctx, "Debug4")
 
-	// 先改成warn等级方便测试
+	// 这里改成warn等级方便测试
 	logger.SetLevel(logger.WarnLevel)
-	if logger.Enabled(logger.InfoLevel) {
-		logger.InfoContext(ctx, "Info1")
+	if logger.Enabled(logger.InfoLevel) { // 提前过滤
+		logger.InfoContext(ctx, "Info1") // 不执行
 	}
-	if logger.V(logger.InfoLevel) {
-		logger.InfoContext(ctx, "Info2")
+	if logger.V(logger.InfoLevel) { // 提前过滤
+		logger.InfoContext(ctx, "Info2") // 不执行
 	}
 	logger.SetLevel(logger.DebugLevel)
 

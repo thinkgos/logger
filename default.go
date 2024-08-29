@@ -11,6 +11,9 @@ var defaultLogger = NewLoggerWith(zap.NewNop(), zap.NewAtomicLevel())
 // ReplaceGlobals replaces the global Log only once.
 func ReplaceGlobals(logger *Log) { defaultLogger = logger }
 
+// UnderlyingLogger underlying global logger.
+func UnderlyingLogger() *Log { return defaultLogger }
+
 // AddCallerSkip add the number of callers skipped by caller annotation.
 func AddCallerSkip(callerSkip int) *Log {
 	defaultLogger.AddCallerSkip(callerSkip)

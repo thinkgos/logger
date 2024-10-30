@@ -1,6 +1,6 @@
 module github.com/things-go/logger
 
-go 1.21
+go 1.22
 
 require (
 	go.uber.org/multierr v1.11.0

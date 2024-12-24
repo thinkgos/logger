@@ -125,6 +125,22 @@ func Named(name string) *Log { return defaultLogger.Named(name) }
 // Sync flushes any buffered log entries.
 func Sync() error { return defaultLogger.Sync() }
 
+func Log2(ctx context.Context, level Level, args ...any) {
+	defaultLogger.Log(ctx, level, args...)
+}
+
+func Logf(ctx context.Context, level Level, template string, args ...any) {
+	defaultLogger.Logf(ctx, level, template, args...)
+}
+
+func Logw(ctx context.Context, level Level, msg string, keysAndValues ...any) {
+	defaultLogger.Logw(ctx, level, msg, keysAndValues...)
+}
+
+func Logx(ctx context.Context, level Level, msg string, fields ...Field) {
+	defaultLogger.Logx(ctx, level, msg, fields...)
+}
+
 // ****** named after the log level or ending in "Context" for log.Print-style logging
 
 func Debug(args ...any) {

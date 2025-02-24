@@ -8,7 +8,6 @@ import (
 func Package(v string) Valuer {
 	return ImmutString("pkg", v)
 }
-
 func App(v string) Valuer {
 	return ImmutString("app", v)
 }
@@ -29,6 +28,9 @@ func Type(v string) Valuer {
 }
 func TraceId(f func(c context.Context) string) Valuer {
 	return FromString("traceId", f)
+}
+func SpanId(f func(c context.Context) string) Valuer {
+	return FromString("spanId", f)
 }
 func RequestId(f func(c context.Context) string) Valuer {
 	return FromString("requestId", f)

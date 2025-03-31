@@ -1,4 +1,4 @@
-module github.com/things-go/logger
+module github.com/thinkgos/logger
 
 go 1.22
 

@@ -19,7 +19,8 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v4.1.5
 
-      - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@v2
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v7
         with:
-          golangci_lint_flags: "-E goimports -E gocritic -E misspell"
+          args: -E misspell,whitespace,unconvert,noctx,musttag,errchkjson,errname,exhaustive,exptostd
+          version: latest

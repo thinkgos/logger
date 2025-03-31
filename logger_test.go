@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/things-go/logger"
+	"github.com/thinkgos/logger"
 )
 
 func init() {

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/things-go/logger"
+	"github.com/thinkgos/logger"
 )
 
 type ctxKey struct{}

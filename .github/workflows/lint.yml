@@ -3,7 +3,7 @@ name: Lint
 on:
   push:
     paths-ignore:
-      - '**.md'
+      - "**.md"
 
 jobs:
   golangci:
@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.5
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          args: -E goimports,misspell,whitespace,gocritic
+          args: -E misspell,whitespace,unconvert,noctx,musttag,errchkjson,errname,exhaustive,exptostd
           version: latest

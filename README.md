@@ -2,12 +2,12 @@
 
 zap logger with lumberjack
 
-[![Go.Dev reference](https://img.shields.io/badge/go.dev-reference-blue?logo=go&logoColor=white)](https://pkg.go.dev/github.com/things-go/logger?tab=doc)
-[![codecov](https://codecov.io/gh/things-go/logger/branch/main/graph/badge.svg)](https://codecov.io/gh/things-go/logger)
-[![Tests](https://github.com/things-go/logger/actions/workflows/ci.yml/badge.svg)](https://github.com/things-go/logger/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/things-go/logger)](https://goreportcard.com/report/github.com/things-go/logger)
-[![Licence](https://img.shields.io/github/license/things-go/logger)](https://raw.githubusercontent.com/things-go/logger/main/LICENSE)
-[![Tag](https://img.shields.io/github/v/tag/things-go/logger)](https://github.com/things-go/logger/tags)
+[![Go.Dev reference](https://img.shields.io/badge/go.dev-reference-blue?logo=go&logoColor=white)](https://pkg.go.dev/github.com/thinkgos/logger?tab=doc)
+[![codecov](https://codecov.io/gh/thinkgos/logger/branch/main/graph/badge.svg)](https://codecov.io/gh/thinkgos/logger)
+[![Tests](https://github.com/thinkgos/logger/actions/workflows/ci.yml/badge.svg)](https://github.com/thinkgos/logger/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/thinkgos/logger)](https://goreportcard.com/report/github.com/thinkgos/logger)
+[![License](https://img.shields.io/github/license/thinkgos/logger)](https://raw.githubusercontent.com/thinkgos/logger/main/LICENSE)
+[![Tag](https://img.shields.io/github/v/tag/thinkgos/logger)](https://github.com/thinkgos/logger/tags)
 
 ## Features
 
@@ -20,13 +20,13 @@ zap logger with lumberjack
 Use go get.
 
 ```bash
-    go get github.com/things-go/logger
+    go get github.com/thinkgos/logger
 ```
 
 Then import the package into your own code.
 
 ```bash
-    import "github.com/things-go/logger"
+    import "github.com/thinkgos/logger"
 ```
 
 ### 示例
@@ -38,7 +38,7 @@ package main
 import (
 	"context"
 
-	"github.com/things-go/logger"
+	"github.com/thinkgos/logger"
 )
 
 type ctxKey struct{}

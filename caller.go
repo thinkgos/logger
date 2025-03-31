@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const loggerPackage = "github.com/things-go/logger"
+const loggerPackage = "github.com/thinkgos/logger"
 
 type CallerCore struct {
 	level        AtomicLevel

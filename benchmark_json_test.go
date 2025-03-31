@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/things-go/logger"
+	"github.com/thinkgos/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

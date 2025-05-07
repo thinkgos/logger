@@ -2,7 +2,6 @@ package logger
 
 import (
 	"context"
-	"fmt"
 
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -10,14 +9,10 @@ import (
 )
 
 // Log wrap zap logger
-// - methods named after the log level or ending in "Context" for log.Print-style logging
-// - methods ending in "w" or "wContext" for loosely-typed structured logging
-// - methods ending in "f" or "fContext" for log.Printf-style logging
-// - methods ending in "x" or "xContext" for structured logging
 type Log struct {
 	log   *zap.Logger
 	level AtomicLevel
-	hook  []Valuer
+	hooks []Hook
 	// for caller
 	callerCore *CallerCore
 }
@@ -27,7 +22,7 @@ func NewLoggerWith(logger *zap.Logger, lv AtomicLevel) *Log {
 	return &Log{
 		log:        logger,
 		level:      lv,
-		hook:       nil,
+		hooks:      nil,
 		callerCore: NewCallerCore(),
 	}
 }
@@ -82,7 +77,7 @@ func (l *Log) UseExternalCallerLevel(lvl AtomicLevel) *Log {
 	return l
 }
 
-// UnderlyingCallerLevel get underlying caller level.
+// UnderlyingCallerLevel return underlying caller level.
 func (l *Log) UnderlyingCallerLevel() AtomicLevel {
 	return l.callerCore.UnderlyingLevel()
 }
@@ -116,12 +111,23 @@ func (l *Log) SetLevel(lv Level) *Log {
 	return l
 }
 
-// SetDefaultValuer set default Valuer function, which hold always until you call XXXContext.
-func (l *Log) SetDefaultValuer(fs ...Valuer) *Log {
-	fn := make([]Valuer, 0, len(fs)+len(l.hook))
-	fn = append(fn, l.hook...)
-	fn = append(fn, fs...)
-	l.hook = fn
+// SetDefaultHook set default hook, which hold always until you call XXXContext.
+func (l *Log) SetDefaultHook(hs ...Hook) *Log {
+	hooks := make([]Hook, len(l.hooks)+len(hs))
+	copy(hooks, l.hooks)
+	copy(hooks[len(l.hooks):], hs)
+	l.hooks = hooks
+	return l
+}
+
+// SetDefaultHookFunc set default hook, which hold always until you call XXXContext.
+func (l *Log) SetDefaultHookFunc(hs ...HookFunc) *Log {
+	hooks := make([]Hook, len(l.hooks)+len(hs))
+	copy(hooks, l.hooks)
+	for i := range hs {
+		hooks[len(l.hooks)+i] = hs[i]
+	}
+	l.hooks = hooks
 	return l
 }
 
@@ -144,46 +150,79 @@ func (l *Log) Sugar() *zap.SugaredLogger { return l.log.Sugar() }
 // Logger return internal logger
 func (l *Log) Logger() *zap.Logger { return l.log }
 
-// WithValuer with Valuer function.
-func (l *Log) WithValuer(fs ...Valuer) *Log {
-	fn := make([]Valuer, 0, len(fs)+len(l.hook))
-	fn = append(fn, l.hook...)
-	fn = append(fn, fs...)
+// ExtendHook return new Log with extend Hook.
+func (l *Log) ExtendHook(hs ...Hook) *Log {
+	hooks := make([]Hook, len(l.hooks)+len(hs))
+	copy(hooks, l.hooks)
+	copy(hooks[len(l.hooks):], hs)
 	return &Log{
 		log:        l.log,
 		level:      l.level,
-		hook:       fn,
+		hooks:      hooks,
 		callerCore: l.callerCore,
 	}
 }
 
-// WithNewValuer return log with new Valuer function without default Valuer.
-func (l *Log) WithNewValuer(fs ...Valuer) *Log {
+// ExtendHookFunc return new Log with extend Hook.
+func (l *Log) ExtendHookFunc(hs ...HookFunc) *Log {
+	hooks := make([]Hook, len(l.hooks)+len(hs))
+	copy(hooks, l.hooks)
+	for i := range hs {
+		hooks[len(l.hooks)+i] = hs[i]
+	}
 	return &Log{
 		log:        l.log,
 		level:      l.level,
-		hook:       fs,
+		hooks:      hooks,
+		callerCore: l.callerCore,
+	}
+}
+
+// WithNewHook return new log with new hook without default hook.
+func (l *Log) WithNewHook(hs ...Hook) *Log {
+	hooks := make([]Hook, len(hs))
+	copy(hooks, hs)
+	return &Log{
+		log:        l.log,
+		level:      l.level,
+		hooks:      hooks,
+		callerCore: l.callerCore,
+	}
+}
+
+// WithNewHookFunc return new log with new hook func without default hook.
+func (l *Log) WithNewHookFunc(hs ...HookFunc) *Log {
+	hooks := make([]Hook, len(hs))
+	for i := range hs {
+		hooks[i] = hs[i]
+	}
+	return &Log{
+		log:        l.log,
+		level:      l.level,
+		hooks:      hooks,
 		callerCore: l.callerCore,
 	}
 }
 
 // With creates a child logger and adds structured context to it. Fields added
 // to the child don't affect the parent, and vice versa.
+//
+// NOTICE: if you do not need a new log, use [Event.With] instead.
 func (l *Log) With(fields ...Field) *Log {
 	return &Log{
 		log:        l.log.With(fields...),
 		level:      l.level,
-		hook:       l.hook,
+		hooks:      l.hooks,
 		callerCore: l.callerCore,
 	}
 }
 
-// Named adds a sub-scope to the logger's name. See Log.Named for details.
+// Named adds a sub-scope to the logger's name. See [Logger.Named] for details.
 func (l *Log) Named(name string) *Log {
 	return &Log{
 		log:        l.log.Named(name),
 		level:      l.level,
-		hook:       l.hook,
+		hooks:      l.hooks,
 		callerCore: l.callerCore,
 	}
 }
@@ -193,350 +232,64 @@ func (l *Log) Sync() error {
 	return l.log.Sync()
 }
 
-func (l *Log) Log(ctx context.Context, level Level, args ...any) {
-	l.Logx(ctx, level, sprintMessage(args...))
-}
-
-func (l *Log) Logf(ctx context.Context, level Level, template string, args ...any) {
-	l.Logx(ctx, level, fmt.Sprintf(template, args...))
-}
-
-func (l *Log) Logw(ctx context.Context, level Level, msg string, keysAndValues ...any) {
-	if !l.level.Enabled(level) {
-		return
+func (l *Log) OnLevel(level Level) *Event {
+	if !l.Enabled(level) {
+		return nil
 	}
-	fc := PoolGet()
-	defer PoolPut(fc)
-	if l.callerCore.Enabled(level) {
-		fc.Fields = append(fc.Fields, l.callerCore.Caller(l.callerCore.Skip, l.callerCore.SkipPackages...))
-	}
-	for _, f := range l.hook {
-		fc.Fields = append(fc.Fields, f(ctx))
-	}
-	fc.Fields = l.appendSweetenFields(ctx, fc.Fields, keysAndValues)
-	l.log.Log(level, msg, fc.Fields...)
+	e := getEvent()
+	e.log = l
+	e.level = level
+	e.hooks = append(e.hooks, l.hooks...)
+	e.ctx = context.Background()
+	return e
 }
 
-func (l *Log) Logx(ctx context.Context, level Level, msg string, fields ...Field) {
-	if !l.level.Enabled(level) {
-		return
-	}
-	if needCaller := l.callerCore.Enabled(level); needCaller || len(l.hook) > 0 {
-		fc := PoolGet()
-		defer PoolPut(fc)
-		if needCaller {
-			fc.Fields = append(fc.Fields, l.callerCore.Caller(l.callerCore.Skip, l.callerCore.SkipPackages...))
-		}
-		for _, f := range l.hook {
-			fc.Fields = append(fc.Fields, f(ctx))
-		}
-		fc.Fields = append(fc.Fields, fields...)
-		l.log.Log(level, msg, fc.Fields...)
-	} else {
-		l.log.Log(level, msg, fields...)
-	}
+func (l *Log) OnLevelContext(ctx context.Context, level Level) *Event {
+	return l.OnLevel(level).WithContext(ctx)
 }
 
-// ****** named after the log level or ending in "Context" for log.Print-style logging
-
-// Debug (see DebugContext)
-func (l *Log) Debug(args ...any) {
-	l.DebugContext(context.Background(), args...)
+func (l *Log) OnDebug() *Event {
+	return l.OnLevel(DebugLevel)
 }
 
-// DebugContext uses fmt.Sprint to construct and log a message.
-func (l *Log) DebugContext(ctx context.Context, args ...any) {
-	l.Log(ctx, DebugLevel, args...)
+func (l *Log) OnDebugContext(ctx context.Context) *Event {
+	return l.OnLevel(DebugLevel).WithContext(ctx)
 }
-
-// Info see InfoContext
-func (l *Log) Info(args ...any) {
-	l.InfoContext(context.Background(), args...)
+func (l *Log) OnInfo() *Event {
+	return l.OnLevel(InfoLevel)
 }
-
-// InfoContext uses fmt.Sprint to construct and log a message.
-func (l *Log) InfoContext(ctx context.Context, args ...any) {
-	l.Log(ctx, InfoLevel, args...)
+func (l *Log) OnInfoContext(ctx context.Context) *Event {
+	return l.OnLevel(InfoLevel).WithContext(ctx)
 }
-
-// Warn see WarnContext
-func (l *Log) Warn(args ...any) {
-	l.WarnContext(context.Background(), args...)
+func (l *Log) OnWarn() *Event {
+	return l.OnLevel(WarnLevel)
 }
-
-// WarnContext uses fmt.Sprint to construct and log a message.
-func (l *Log) WarnContext(ctx context.Context, args ...any) {
-	l.Log(ctx, WarnLevel, args...)
+func (l *Log) OnWarnContext(ctx context.Context) *Event {
+	return l.OnLevel(WarnLevel).WithContext(ctx)
 }
-
-// Error see ErrorContext
-func (l *Log) Error(args ...any) {
-	l.ErrorContext(context.Background(), args...)
+func (l *Log) OnError() *Event {
+	return l.OnLevel(ErrorLevel)
 }
-
-// ErrorContext uses fmt.Sprint to construct and log a message.
-func (l *Log) ErrorContext(ctx context.Context, args ...any) {
-	l.Log(ctx, ErrorLevel, args...)
+func (l *Log) OnErrorContext(ctx context.Context) *Event {
+	return l.OnLevel(ErrorLevel).WithContext(ctx)
 }
-
-// DPanic see DPanicContext
-func (l *Log) DPanic(args ...any) {
-	l.DPanicContext(context.Background(), args...)
+func (l *Log) OnDPanic() *Event {
+	return l.OnLevel(DPanicLevel)
 }
-
-// DPanicContext uses fmt.Sprint to construct and log a message. In development, the
-// logger then panics. (see DPanicLevel for details.)
-func (l *Log) DPanicContext(ctx context.Context, args ...any) {
-	l.Log(ctx, DPanicLevel, args...)
+func (l *Log) OnDPanicContext(ctx context.Context) *Event {
+	return l.OnLevel(DPanicLevel).WithContext(ctx)
 }
-
-// Panic see PanicContext
-func (l *Log) Panic(args ...any) {
-	l.PanicContext(context.Background(), args...)
+func (l *Log) OnPanic() *Event {
+	return l.OnLevel(PanicLevel)
 }
-
-// PanicContext uses fmt.Sprint to to construct and log a message, then panics.
-func (l *Log) PanicContext(ctx context.Context, args ...any) {
-	l.Log(ctx, PanicLevel, args...)
+func (l *Log) OnPanicContext(ctx context.Context) *Event {
+	return l.OnLevel(PanicLevel).WithContext(ctx)
 }
-
-// Fatal see FatalContext
-func (l *Log) Fatal(args ...any) {
-	l.FatalContext(context.Background(), args...)
+func (l *Log) OnFatal() *Event {
+	return l.OnLevel(FatalLevel)
 }
-
-// FatalContext uses fmt.Sprint to construct and log a message, then calls os.Exit.
-func (l *Log) FatalContext(ctx context.Context, args ...any) {
-	l.Log(ctx, FatalLevel, args...)
-}
-
-// ****** ending in "f" or "fContext" for log.Printf-style logging
-
-// Debugf see DebugfContext
-func (l *Log) Debugf(template string, args ...any) {
-	l.DebugfContext(context.Background(), template, args...)
-}
-
-// DebugfContext uses fmt.Sprintf to log a templated message.
-func (l *Log) DebugfContext(ctx context.Context, template string, args ...any) {
-	l.Logf(ctx, DebugLevel, template, args...)
-}
-
-// Infof see InfofContext
-func (l *Log) Infof(template string, args ...any) {
-	l.InfofContext(context.Background(), template, args...)
-}
-
-// InfofContext uses fmt.Sprintf to log a templated message.
-func (l *Log) InfofContext(ctx context.Context, template string, args ...any) {
-	l.Logf(ctx, InfoLevel, template, args...)
-}
-
-// Warnf see WarnfContext
-func (l *Log) Warnf(template string, args ...any) {
-	l.WarnfContext(context.Background(), template, args...)
-}
-
-// WarnfContext uses fmt.Sprintf to log a templated message.
-func (l *Log) WarnfContext(ctx context.Context, template string, args ...any) {
-	l.Logf(ctx, WarnLevel, template, args...)
-}
-
-// Errorf see ErrorfContext
-func (l *Log) Errorf(template string, args ...any) {
-	l.ErrorfContext(context.Background(), template, args...)
-}
-
-// ErrorfContext uses fmt.Sprintf to log a templated message.
-func (l *Log) ErrorfContext(ctx context.Context, template string, args ...any) {
-	l.Logf(ctx, ErrorLevel, template, args...)
-}
-
-// DPanicf see DPanicfContext
-func (l *Log) DPanicf(template string, args ...any) {
-	l.DPanicfContext(context.Background(), template, args...)
-}
-
-// DPanicfContext uses fmt.Sprintf to log a templated message. In development, the
-// logger then panics. (see DPanicLevel for details.)
-func (l *Log) DPanicfContext(ctx context.Context, template string, args ...any) {
-	l.Logf(ctx, DPanicLevel, template, args...)
-}
-
-// Panicf see PanicfContext
-func (l *Log) Panicf(template string, args ...any) {
-	l.PanicfContext(context.Background(), template, args...)
-}
-
-// PanicfContext uses fmt.Sprintf to log a templated message, then panics.
-func (l *Log) PanicfContext(ctx context.Context, template string, args ...any) {
-	l.Logf(ctx, PanicLevel, template, args...)
-}
-
-// Fatalf see FatalfContext
-func (l *Log) Fatalf(template string, args ...any) {
-	l.FatalfContext(context.Background(), template, args...)
-}
-
-// Fatalf uses fmt.Sprintf to log a templated message, then calls os.Exit.
-func (l *Log) FatalfContext(ctx context.Context, template string, args ...any) {
-	l.Logf(ctx, FatalLevel, template, args...)
-}
-
-// ****** ending in "w" or "wContext" for loosely-typed structured logging
-
-// Debugw see DebugwContext
-func (l *Log) Debugw(msg string, keysAndValues ...any) {
-	l.DebugwContext(context.Background(), msg, keysAndValues...)
-}
-
-// DebugwContext logs a message with some additional context. The variadic key-value or Field
-// pairs or Field are treated as they are in With.
-//
-// When debug-level logging is disabled, this is much faster than
-//
-//	s.With(fields).Debug(msg)
-func (l *Log) DebugwContext(ctx context.Context, msg string, keysAndValues ...any) {
-	l.Logw(ctx, DebugLevel, msg, keysAndValues...)
-}
-
-// Infow see InfowContext
-func (l *Log) Infow(msg string, keysAndValues ...any) {
-	l.InfowContext(context.Background(), msg, keysAndValues...)
-}
-
-// InfowContext logs a message with some additional context. The variadic key-value
-// pairs or Field are treated as they are in With.
-func (l *Log) InfowContext(ctx context.Context, msg string, keysAndValues ...any) {
-	l.Logw(ctx, InfoLevel, msg, keysAndValues...)
-}
-
-// Warnw see WarnwContext
-func (l *Log) Warnw(msg string, keysAndValues ...any) {
-	l.WarnwContext(context.Background(), msg, keysAndValues...)
-}
-
-// WarnwContext logs a message with some additional context. The variadic key-value
-// pairs or Field are treated as they are in With.
-func (l *Log) WarnwContext(ctx context.Context, msg string, keysAndValues ...any) {
-	l.Logw(ctx, WarnLevel, msg, keysAndValues...)
-}
-
-// Errorw see ErrorwContext
-func (l *Log) Errorw(msg string, keysAndValues ...any) {
-	l.ErrorwContext(context.Background(), msg, keysAndValues...)
-}
-
-// ErrorwContext logs a message with some additional context. The variadic key-value
-// pairs or Field are treated as they are in With.
-func (l *Log) ErrorwContext(ctx context.Context, msg string, keysAndValues ...any) {
-	l.Logw(ctx, ErrorLevel, msg, keysAndValues...)
-}
-
-// DPanicw see DPanicwContext
-func (l *Log) DPanicw(msg string, keysAndValues ...any) {
-	l.DPanicwContext(context.Background(), msg, keysAndValues...)
-}
-
-// DPanicwContext logs a message with some additional context. In development, the
-// logger then panics. (see DPanicLevel for details.) The variadic key-value
-// pairs or Field are treated as they are in With.
-func (l *Log) DPanicwContext(ctx context.Context, msg string, keysAndValues ...any) {
-	l.Logw(ctx, DPanicLevel, msg, keysAndValues...)
-}
-
-// Panicw see PanicwContext
-func (l *Log) Panicw(msg string, keysAndValues ...any) {
-	l.PanicwContext(context.Background(), msg, keysAndValues...)
-}
-
-// PanicwContext logs a message with some additional context, then panics. The
-// variadic key-value pairs or Field are treated as they are in With.
-func (l *Log) PanicwContext(ctx context.Context, msg string, keysAndValues ...any) {
-	l.Logw(ctx, PanicLevel, msg, keysAndValues...)
-}
-
-func (l *Log) Fatalw(msg string, keysAndValues ...any) {
-	l.FatalwContext(context.Background(), msg, keysAndValues...)
-}
-
-// FatalwContext logs a message with some additional context, then calls os.Exit. The
-// variadic key-value pairs or Field are treated as they are in With.
-func (l *Log) FatalwContext(ctx context.Context, msg string, keysAndValues ...any) {
-	l.Logw(ctx, FatalLevel, msg, keysAndValues...)
-}
-
-// ****** ending in "x" or "xContext" for structured logging
-
-// Debug (see DebugContext)
-func (l *Log) Debugx(msg string, fields ...Field) {
-	l.DebugxContext(context.Background(), msg, fields...)
-}
-
-// DebugContext uses fmt.Sprint to construct and log a message.
-func (l *Log) DebugxContext(ctx context.Context, msg string, fields ...Field) {
-	l.Logx(ctx, DebugLevel, msg, fields...)
-}
-
-// Info see InfoContext
-func (l *Log) Infox(msg string, fields ...Field) {
-	l.InfoxContext(context.Background(), msg, fields...)
-}
-
-// InfoContext uses fmt.Sprint to construct and log a message.
-func (l *Log) InfoxContext(ctx context.Context, msg string, fields ...Field) {
-	l.Logx(ctx, InfoLevel, msg, fields...)
-}
-
-// Warn see WarnContext
-func (l *Log) Warnx(msg string, fields ...Field) {
-	l.WarnxContext(context.Background(), msg, fields...)
-}
-
-// WarnContext uses fmt.Sprint to construct and log a message.
-func (l *Log) WarnxContext(ctx context.Context, msg string, fields ...Field) {
-	l.Logx(ctx, WarnLevel, msg, fields...)
-}
-
-// Error see ErrorContext
-func (l *Log) Errorx(msg string, fields ...Field) {
-	l.ErrorxContext(context.Background(), msg, fields...)
-}
-
-// ErrorContext uses fmt.Sprint to construct and log a message.
-func (l *Log) ErrorxContext(ctx context.Context, msg string, fields ...Field) {
-	l.Logx(ctx, ErrorLevel, msg, fields...)
-}
-
-// DPanic see DPanicContext
-func (l *Log) DPanicx(msg string, fields ...Field) {
-	l.DPanicxContext(context.Background(), msg, fields...)
-}
-
-// DPanicContext uses fmt.Sprint to construct and log a message. In development, the
-// logger then panics. (see DPanicLevel for details.)
-func (l *Log) DPanicxContext(ctx context.Context, msg string, fields ...Field) {
-	l.Logx(ctx, DPanicLevel, msg, fields...)
-}
-
-// Panic see PanicContext
-func (l *Log) Panicx(msg string, fields ...Field) {
-	l.PanicxContext(context.Background(), msg, fields...)
-}
-
-// PanicContext uses fmt.Sprint to to construct and log a message, then panics.
-func (l *Log) PanicxContext(ctx context.Context, msg string, fields ...Field) {
-	l.Logx(ctx, PanicLevel, msg, fields...)
-}
-
-// Fatal see FatalContext
-func (l *Log) Fatalx(msg string, fields ...Field) {
-	l.FatalxContext(context.Background(), msg, fields...)
-}
-
-// FatalContext uses fmt.Sprint to construct and log a message, then calls os.Exit.
-func (l *Log) FatalxContext(ctx context.Context, msg string, fields ...Field) {
-	l.Logx(ctx, FatalLevel, msg, fields...)
+func (l *Log) OnFatalContext(ctx context.Context) *Event {
+	return l.OnLevel(FatalLevel).WithContext(ctx)
 }
 
 const (
@@ -544,19 +297,6 @@ const (
 	_nonStringKeyErrMsg = "Ignored key-value pairs with non-string keys."
 	_multipleErrMsg     = "Multiple errors without a key."
 )
-
-// sprintMessage format with fmt.Sprint.
-func sprintMessage(args ...any) string {
-	if len(args) == 0 {
-		return ""
-	}
-	if len(args) == 1 {
-		if str, ok := args[0].(string); ok {
-			return str
-		}
-	}
-	return fmt.Sprint(args...)
-}
 
 // copy from zap(sugar.go)
 func (l *Log) appendSweetenFields(ctx context.Context, fields []Field, keysAndValues []any) []Field {
@@ -581,9 +321,11 @@ func (l *Log) appendSweetenFields(ctx context.Context, fields []Field, keysAndVa
 		if err, ok := keysAndValues[i].(error); ok {
 			if !seenError {
 				seenError = true
-				fields = append(fields, zap.Error(err))
+				fields = append(fields, Err(err))
 			} else {
-				l.Logx(ctx, ErrorLevel, _multipleErrMsg, zap.Error(err))
+				l.OnErrorContext(ctx).
+					With(Err(err)).
+					Msg(_multipleErrMsg)
 			}
 			i++
 			continue
@@ -591,7 +333,9 @@ func (l *Log) appendSweetenFields(ctx context.Context, fields []Field, keysAndVa
 
 		// Make sure this element isn't a dangling key.
 		if i == len(keysAndValues)-1 {
-			l.Logx(ctx, ErrorLevel, _oddNumberErrMsg, Any("ignored", keysAndValues[i]))
+			l.OnErrorContext(ctx).
+				With(Any("ignored", keysAndValues[i])).
+				Msg(_oddNumberErrMsg)
 			break
 		}
 
@@ -612,7 +356,9 @@ func (l *Log) appendSweetenFields(ctx context.Context, fields []Field, keysAndVa
 
 	// If we encountered any invalid key-value pairs, log an error.
 	if len(invalid) > 0 {
-		l.Logx(ctx, ErrorLevel, _nonStringKeyErrMsg, zap.Array("invalid", invalid))
+		l.OnErrorContext(ctx).
+			With(Array("invalid", invalid)).
+			Msg(_nonStringKeyErrMsg)
 	}
 	return fields
 }
@@ -622,7 +368,7 @@ type invalidPair struct {
 	key, value any
 }
 
-func (p invalidPair) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (p invalidPair) MarshalLogObject(enc ObjectEncoder) error {
 	enc.AddInt64("position", int64(p.position))
 	Any("key", p.key).AddTo(enc)
 	Any("value", p.value).AddTo(enc)
@@ -631,7 +377,7 @@ func (p invalidPair) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 
 type invalidPairs []invalidPair
 
-func (ps invalidPairs) MarshalLogArray(enc zapcore.ArrayEncoder) error {
+func (ps invalidPairs) MarshalLogArray(enc ArrayEncoder) error {
 	var err error
 	for i := range ps {
 		err = multierr.Append(err, enc.AppendObject(ps[i]))

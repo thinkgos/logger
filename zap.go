@@ -14,6 +14,9 @@ type AtomicLevel = zap.AtomicLevel
 type Field = zap.Field
 type Level = zapcore.Level
 type ObjectMarshaler = zapcore.ObjectMarshaler
+type ArrayMarshaler = zapcore.ArrayMarshaler
+type ObjectEncoder = zapcore.ObjectEncoder
+type ArrayEncoder = zapcore.ArrayEncoder
 
 // log level defined
 const (

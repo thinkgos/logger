@@ -98,14 +98,14 @@ func DefaultCaller(depth int, skipPackages ...string) Field {
 }
 
 // File returns a Valuer that returns a pkg/file:line description of the caller.
-func File(depth int, skipPackages ...string) Valuer {
+func File(depth int, skipPackages ...string) HookFunc {
 	return func(context.Context) Field {
 		return DefaultCallerFile(depth, skipPackages...)
 	}
 }
 
 // Caller returns a Valuer that returns a pkg/file:line description of the caller.
-func Caller(depth int, skipPackages ...string) Valuer {
+func Caller(depth int, skipPackages ...string) HookFunc {
 	return func(context.Context) Field {
 		return DefaultCaller(depth, skipPackages...)
 	}

@@ -74,3 +74,4 @@ func Object(key string, val ObjectMarshaler) Field   { return zap.Object(key, va
 func Inline(val ObjectMarshaler) Field               { return zap.Inline(val) }
 func Dict(key string, val ...Field) Field            { return zap.Dict(key, val...) }
 func Any(key string, val any) Field                  { return zap.Any(key, val) }
+func Array(key string, val ArrayMarshaler) Field     { return zap.Array(key, val) }

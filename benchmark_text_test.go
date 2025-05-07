@@ -37,13 +37,11 @@ func Benchmark_Text_Logger(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfoxContext(
-			ctx,
-			"success",
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-			dfltCtx(ctx),
-		)
+		l.OnInfoContext(ctx).
+			String("name", "jack").
+			Int("age", 18).
+			With(dfltCtx(ctx)).
+			Msg("success")
 	}
 }
 
@@ -55,12 +53,10 @@ func Benchmark_Text_Logger_Use_Hook(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfoxContext(
-			ctx,
-			"success",
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-		)
+		l.OnInfoContext(ctx).
+			String("name", "jack").
+			Int("age", 18).
+			Msg("success")
 	}
 }
 
@@ -91,12 +87,13 @@ func Benchmark_Text_KeyValuePair(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfowContext(ctx,
-			"success",
-			"name", "jack",
-			"age", 18,
-			dfltCtx(ctx),
-		)
+		l.OnInfoContext(ctx).
+			Pairs(
+				"name", "jack",
+				"age", 18,
+				dfltCtx(ctx),
+			).
+			Msg("success")
 	}
 }
 
@@ -107,12 +104,13 @@ func Benchmark_Text_KeyValuePairFields(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfowContext(ctx,
-			"success",
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-			dfltCtx(ctx),
-		)
+		l.OnInfoContext(ctx).
+			Pairs(
+				logger.String("name", "jack"),
+				logger.Int("age", 18),
+				dfltCtx(ctx),
+			).
+			Msg("success")
 	}
 }
 
@@ -124,11 +122,12 @@ func Benchmark_Text_KeyValuePairFields_Use_Hook(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfowContext(ctx,
-			"success",
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-		)
+		l.OnInfoContext(ctx).
+			Pairs(
+				logger.String("name", "jack"),
+				logger.Int("age", 18),
+			).
+			Msg("success")
 	}
 }
 
@@ -139,11 +138,13 @@ func Benchmark_Text_KeyValuePairFields_Use_WithFields(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.With(
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-			dfltCtx(ctx),
-		).InfowContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			With(
+				logger.String("name", "jack"),
+				logger.Int("age", 18),
+				dfltCtx(ctx),
+			).
+			Msg("success")
 	}
 }
 
@@ -155,29 +156,33 @@ func Benchmark_Text_KeyValuePairFields_Use_WithFields_Hook(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.With(
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-		).InfowContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			With(
+				logger.String("name", "jack"),
+				logger.Int("age", 18),
+			).
+			Msg("success")
 	}
 }
 
-func Benchmark_Text_KeyValuePairFields_Use_WithValuer(b *testing.B) {
+func Benchmark_Text_KeyValuePairFields_Use_ExtendHook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.WithValuer(
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
-			dfltCtx,
-		).InfowContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			ExtendHook(
+				&logger.ImmutableString{"name", "jack"},
+				&logger.ImmutableInt{"age", 18},
+				newDfltHook(),
+			).
+			Msg("success")
 	}
 }
 
-func Benchmark_Text_KeyValuePairFields_Use_WithValuer_Hook(b *testing.B) {
+func Benchmark_Text_KeyValuePairFields_Use_ExtendHook_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
@@ -185,10 +190,13 @@ func Benchmark_Text_KeyValuePairFields_Use_WithValuer_Hook(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.WithValuer(
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
-		).InfowContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			ExtendHook(
+				&logger.ImmutableString{"name", "jack"},
+				&logger.ImmutableInt{"age", 18},
+				newDfltHook(),
+			).
+			Msg("success")
 	}
 }
 
@@ -199,17 +207,17 @@ func Benchmark_Text_Format(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.WithValuer(
-			func(ctx context.Context) logger.Field {
-				return logger.String("name", "jack")
-			},
-			func(ctx context.Context) logger.Field {
-				return logger.Int("age", 18)
-			},
-			dfltCtx,
-		).InfofContext(ctx,
-			"success",
-		)
+		l.OnInfoContext(ctx).
+			ExtendHookFunc(
+				func(ctx context.Context) logger.Field {
+					return logger.String("name", "jack")
+				},
+				func(ctx context.Context) logger.Field {
+					return logger.Int("age", 18)
+				},
+				dfltCtx,
+			).
+			Printf("success")
 	}
 }
 
@@ -221,11 +229,11 @@ func Benchmark_Text_Format_Use_Hook(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.WithValuer(
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
-		).InfofContext(ctx,
-			"success",
-		)
+		l.OnInfoContext(ctx).
+			ExtendHookFunc(
+				logger.ImmutString("name", "jack"),
+				logger.ImmutInt("age", 18),
+			).
+			Msg("success")
 	}
 }

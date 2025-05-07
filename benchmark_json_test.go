@@ -35,6 +35,13 @@ func dfltCtx(ctx context.Context) logger.Field {
 	return zap.String("dflt_key", "dflt_value")
 }
 
+func newDfltHook() logger.Hook {
+	return &logger.ImmutableString{
+		Key:   "dflt_key",
+		Value: "dflt_value",
+	}
+}
+
 func Benchmark_Json_NativeLogger(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
@@ -62,13 +69,11 @@ func Benchmark_Json_Logger(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfoxContext(
-			ctx,
-			"success",
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-			dfltCtx(ctx),
-		)
+		l.OnInfoContext(ctx).
+			String("name", "jack").
+			Int("age", 18).
+			With(dfltCtx(ctx)).
+			Msg("success")
 	}
 }
 
@@ -76,16 +81,14 @@ func Benchmark_Json_Logger_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfoxContext(
-			ctx,
-			"success",
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-		)
+		l.OnInfoContext(ctx).
+			String("name", "jack").
+			Int("age", 18).
+			Msg("success")
 	}
 }
 
@@ -116,12 +119,13 @@ func Benchmark_Json_KeyValuePair(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfowContext(ctx,
-			"success",
-			"name", "jack",
-			"age", 18,
-			dfltCtx(ctx),
-		)
+		l.OnInfoContext(ctx).
+			Pairs(
+				"name", "jack",
+				"age", 18,
+				dfltCtx(ctx),
+			).
+			Msg("success")
 	}
 }
 
@@ -132,12 +136,13 @@ func Benchmark_Json_KeyValuePairFields(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfowContext(ctx,
-			"success",
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-			dfltCtx(ctx),
-		)
+		l.OnInfoContext(ctx).
+			Pairs(
+				logger.String("name", "jack"),
+				logger.Int("age", 18),
+				dfltCtx(ctx),
+			).
+			Msg("success")
 	}
 }
 
@@ -145,15 +150,16 @@ func Benchmark_Json_KeyValuePairFields_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.InfowContext(ctx,
-			"success",
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-		)
+		l.OnInfoContext(ctx).
+			Pairs(
+				logger.String("name", "jack"),
+				logger.Int("age", 18),
+			).
+			Msg("success")
 	}
 }
 
@@ -164,11 +170,13 @@ func Benchmark_Json_KeyValuePairFields_Use_WithFields(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.With(
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-			dfltCtx(ctx),
-		).InfowContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			With(
+				logger.String("name", "jack"),
+				logger.Int("age", 18),
+				dfltCtx(ctx),
+			).
+			Msg("success")
 	}
 }
 
@@ -176,44 +184,51 @@ func Benchmark_Json_KeyValuePairFields_Use_WithFields_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.With(
-			logger.String("name", "jack"),
-			logger.Int("age", 18),
-		).InfowContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			With(
+				logger.String("name", "jack"),
+				logger.Int("age", 18),
+			).
+			Msg("success")
 	}
 }
 
-func Benchmark_Json_KeyValuePairFields_Use_WithValuer(b *testing.B) {
+func Benchmark_Json_KeyValuePairFields_Use_ExtendHook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.WithValuer(
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
-			dfltCtx,
-		).InfowContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			ExtendHook(
+				&logger.ImmutableString{"name", "jack"},
+				&logger.ImmutableInt{"age", 18},
+				newDfltHook(),
+			).
+			Msg("success")
 	}
 }
 
-func Benchmark_Json_KeyValuePairFields_Use_WithValuer_Hook(b *testing.B) {
+func Benchmark_Json_KeyValuePairFields_Use_ExtendHook_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.WithValuer(
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
-		).InfowContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			ExtendHook(
+				&logger.ImmutableString{"name", "jack"},
+				&logger.ImmutableInt{"age", 18},
+				newDfltHook(),
+			).
+			Msg("success")
 	}
 }
 
@@ -224,15 +239,17 @@ func Benchmark_Json_Format(b *testing.B) {
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.WithValuer(
-			func(ctx context.Context) logger.Field {
-				return logger.String("name", "jack")
-			},
-			func(ctx context.Context) logger.Field {
-				return logger.Int("age", 18)
-			},
-			dfltCtx,
-		).InfofContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			ExtendHookFunc(
+				func(ctx context.Context) logger.Field {
+					return logger.String("name", "jack")
+				},
+				func(ctx context.Context) logger.Field {
+					return logger.Int("age", 18)
+				},
+				dfltCtx,
+			).
+			Printf("success")
 	}
 }
 
@@ -240,13 +257,15 @@ func Benchmark_Json_Format_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		l.WithValuer(
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
-		).InfofContext(ctx, "success")
+		l.OnInfoContext(ctx).
+			ExtendHookFunc(
+				logger.ImmutString("name", "jack"),
+				logger.ImmutInt("age", 18),
+			).
+			Msg("success")
 	}
 }

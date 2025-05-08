@@ -52,6 +52,14 @@ func NewLoggerWith(logger *zap.Logger, lv AtomicLevel) *Log {
 // callerSkipPackages caller设置跳过的包名, 默认空
 func NewLogger(opts ...Option) *Log { return NewLoggerWith(New(opts...)) }
 
+// SetNewCallerCore overwrite with new caller core
+func (l *Log) SetNewCallerCore(c *CallerCore) *Log {
+	if c == nil {
+		l.callerCore = c
+	}
+	return l
+}
+
 // AddCallerSkip add the number of callers skipped by caller annotation.
 func (l *Log) AddCallerSkip(callerSkip int) *Log {
 	l.callerCore.AddSkip(callerSkip)

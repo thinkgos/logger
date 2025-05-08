@@ -54,7 +54,7 @@ func NewLogger(opts ...Option) *Log { return NewLoggerWith(New(opts...)) }
 
 // SetNewCallerCore overwrite with new caller core
 func (l *Log) SetNewCallerCore(c *CallerCore) *Log {
-	if c == nil {
+	if c != nil {
 		l.callerCore = c
 	}
 	return l

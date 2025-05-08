@@ -184,37 +184,33 @@ func Benchmark_Json_Use_ExtendHook_Hook(b *testing.B) {
 func Benchmark_Json_Format(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
+	l := newDiscardLogger(logger.FormatJson).
+		ExtendDefaultHook(
+			newDfltHook(),
+			logger.ImmutString("name", "jack"),
+			logger.ImmutInt("age", 18),
+		)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		l.OnInfoContext(ctx).
-			ExtendHookFunc(
-				func(ctx context.Context) logger.Field {
-					return logger.String("name", "jack")
-				},
-				func(ctx context.Context) logger.Field {
-					return logger.Int("age", 18)
-				},
-				dfltCtx,
-			).
-			Printf("success")
+			Printf("success: %s", "ok")
 	}
 }
 
 func Benchmark_Json_Format_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
-	l.ExtendDefaultHook(newDfltHook())
+	l := newDiscardLogger(logger.FormatJson).
+		ExtendDefaultHook(
+			newDfltHook(),
+			logger.ImmutString("name", "jack"),
+			logger.ImmutInt("age", 18),
+		)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		l.OnInfoContext(ctx).
-			ExtendHookFunc(
-				logger.ImmutString("name", "jack"),
-				logger.ImmutInt("age", 18),
-			).
-			Msg("success")
+			Printf("success: %s", "ok")
 	}
 }

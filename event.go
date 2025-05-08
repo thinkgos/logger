@@ -18,13 +18,13 @@ var eventPool = &sync.Pool{
 	},
 }
 
+// getEvent
 func getEvent() *Event {
 	e := eventPool.Get().(*Event)
 	return e.reset()
 }
 
-// PoolPut adds x to the pool.
-// NOTE: See PoolGet.
+// putEvent adds x to the pool.
 func putEvent(e *Event) {
 	if e == nil {
 		return
@@ -32,6 +32,8 @@ func putEvent(e *Event) {
 	eventPool.Put(e.reset())
 }
 
+// Event represents a log event.
+// It is instanced by one of the level method of Logger and finalized by the Msg, Print, Printf method.
 type Event struct {
 	log       *Log
 	level     Level
@@ -52,6 +54,9 @@ func (e *Event) reset() *Event {
 	return e
 }
 
+// WithContext adds the Go Context to the *Event context.
+// The context is not rendered in the output message, but is available to hooks calls.
+// A typical use case is to extract tracing information from the Go Ctx.
 func (e *Event) WithContext(ctx context.Context) *Event {
 	if e == nil {
 		return e
@@ -61,6 +66,8 @@ func (e *Event) WithContext(ctx context.Context) *Event {
 }
 
 // ExtendHook extend Hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+//
+// NOTICE: It is not recommended to use this method, as it will alloc more memory.
 func (e *Event) ExtendHook(hs ...Hook) *Event {
 	if e == nil {
 		return e
@@ -70,6 +77,8 @@ func (e *Event) ExtendHook(hs ...Hook) *Event {
 }
 
 // ExtendHook extend Hook func, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+//
+// NOTICE: It is not recommended to use this method, as it will alloc more memory.
 func (e *Event) ExtendHookFunc(hs ...HookFunc) *Event {
 	if e == nil {
 		return e
@@ -81,6 +90,8 @@ func (e *Event) ExtendHookFunc(hs ...HookFunc) *Event {
 }
 
 // WithNewHook with new Hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+//
+// NOTICE: It is not recommended to use this method, as it will alloc more memory.
 func (e *Event) WithNewHook(hs ...Hook) *Event {
 	if e == nil {
 		return e

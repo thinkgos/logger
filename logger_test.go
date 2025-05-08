@@ -10,7 +10,7 @@ import (
 func init() {
 	l, lv := logger.New(logger.WithLevel(logger.DebugLevel.String()))
 	logger.ReplaceGlobals(logger.NewLoggerWith(l, lv))
-	logger.SetDefaultHookFunc(
+	logger.ExtendDefaultHookFunc(
 		logger.Caller(3),
 		func(ctx context.Context) logger.Field {
 			return logger.String("deft_key1", "deft_val1")

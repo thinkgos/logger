@@ -152,37 +152,33 @@ func Benchmark_Text_Use_ExtendHook_Hook(b *testing.B) {
 func Benchmark_Text_Format(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatConsole)
+	l := newDiscardLogger(logger.FormatConsole).
+		ExtendDefaultHook(
+			newDfltHook(),
+			logger.ImmutString("name", "jack"),
+			logger.ImmutInt("age", 18),
+		)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		l.OnInfoContext(ctx).
-			ExtendHookFunc(
-				func(ctx context.Context) logger.Field {
-					return logger.String("name", "jack")
-				},
-				func(ctx context.Context) logger.Field {
-					return logger.Int("age", 18)
-				},
-				dfltCtx,
-			).
-			Printf("success")
+			Printf("success: %s", "ok")
 	}
 }
 
 func Benchmark_Text_Format_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatConsole)
-	l.ExtendDefaultHookFunc(dfltCtx)
+	l := newDiscardLogger(logger.FormatConsole).
+		ExtendDefaultHook(
+			newDfltHook(),
+			logger.ImmutString("name", "jack"),
+			logger.ImmutInt("age", 18),
+		)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		l.OnInfoContext(ctx).
-			ExtendHookFunc(
-				logger.ImmutString("name", "jack"),
-				logger.ImmutInt("age", 18),
-			).
-			Msg("success")
+			Printf("success: %s", "ok")
 	}
 }

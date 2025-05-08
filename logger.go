@@ -152,10 +152,10 @@ func (l *Log) V(lvl Level) bool { return l.level.Enabled(lvl) }
 // between them on the boundaries of performance-sensitive code.
 func (l *Log) Sugar() *zap.SugaredLogger { return l.log.Sugar() }
 
-// Logger return internal logger
+// Logger return internal [zap.Logger]
 func (l *Log) Logger() *zap.Logger { return l.log }
 
-// ExtendHook return new Log with extend Hook.
+// ExtendHook creates a child log with extend Hook.
 func (l *Log) ExtendHook(hs ...Hook) *Log {
 	hooks := make([]Hook, len(l.hooks)+len(hs))
 	copy(hooks, l.hooks)
@@ -168,7 +168,7 @@ func (l *Log) ExtendHook(hs ...Hook) *Log {
 	}
 }
 
-// ExtendHookFunc return new Log with extend Hook.
+// ExtendHookFunc creates a child log with extend Hook.
 func (l *Log) ExtendHookFunc(hs ...HookFunc) *Log {
 	hooks := make([]Hook, len(l.hooks)+len(hs))
 	copy(hooks, l.hooks)
@@ -183,7 +183,7 @@ func (l *Log) ExtendHookFunc(hs ...HookFunc) *Log {
 	}
 }
 
-// WithNewHook return new log with new hook without default hook.
+// WithNewHook creates a child log with new hook without default hook.
 func (l *Log) WithNewHook(hs ...Hook) *Log {
 	hooks := make([]Hook, len(hs))
 	copy(hooks, hs)
@@ -195,7 +195,7 @@ func (l *Log) WithNewHook(hs ...Hook) *Log {
 	}
 }
 
-// WithNewHookFunc return new log with new hook func without default hook.
+// WithNewHookFunc creates a child log with new hook func without default hook.
 func (l *Log) WithNewHookFunc(hs ...HookFunc) *Log {
 	hooks := make([]Hook, len(hs))
 	for i := range hs {
@@ -209,7 +209,7 @@ func (l *Log) WithNewHookFunc(hs ...HookFunc) *Log {
 	}
 }
 
-// With creates a child logger and adds structured context to it. Fields added
+// With creates a child log and adds structured context to it. Fields added
 // to the child don't affect the parent, and vice versa.
 //
 // NOTICE: if you do not need a new log, use [Event.With] instead.

@@ -8,8 +8,6 @@ import (
 	"go.uber.org/zap"
 )
 
-/**************************** hook func ******************************************/
-
 func wrapperField(field Field) HookFunc {
 	return func(ctx context.Context) Field {
 		return field

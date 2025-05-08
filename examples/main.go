@@ -26,7 +26,7 @@ func main() {
 	).
 		SetCallerLevel(logger.WarnLevel)
 	logger.ReplaceGlobals(l)
-	logger.SetDefaultHookFunc(ExampleHook)
+	logger.ExtendDefaultHookFunc(ExampleHook)
 
 	ctx := context.WithValue(context.Background(), ctxKey{}, "ctx_val1")
 

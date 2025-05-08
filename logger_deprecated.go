@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// SetDefaultValuer set default Valuer function, which hold always until you call XXXContext.
+// SetDefaultValuer set default Valuer function, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 //
 // Deprecated: As of 0.4.0, use [Log.SetDefaultHookFunc]/[Log.SetDefaultHook] instead.
 func (l *Log) SetDefaultValuer(vs ...Valuer) *Log {

@@ -111,7 +111,7 @@ func (l *Log) SetLevel(lv Level) *Log {
 	return l
 }
 
-// SetDefaultHook set default hook, which hold always until you call XXXContext.
+// SetDefaultHook set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func (l *Log) SetDefaultHook(hs ...Hook) *Log {
 	hooks := make([]Hook, len(l.hooks)+len(hs))
 	copy(hooks, l.hooks)
@@ -120,7 +120,7 @@ func (l *Log) SetDefaultHook(hs ...Hook) *Log {
 	return l
 }
 
-// SetDefaultHookFunc set default hook, which hold always until you call XXXContext.
+// SetDefaultHookFunc set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func (l *Log) SetDefaultHookFunc(hs ...HookFunc) *Log {
 	hooks := make([]Hook, len(l.hooks)+len(hs))
 	copy(hooks, l.hooks)

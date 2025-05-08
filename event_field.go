@@ -379,3 +379,19 @@ func (e *Event) Array(key string, v ArrayMarshaler) *Event {
 	e.fields = append(e.fields, zap.Array(key, v))
 	return e
 }
+
+func (e *Event) Caller(depth int) *Event {
+	if e == nil {
+		return e
+	}
+	e.fields = append(e.fields, DefaultCaller(depth))
+	return e
+}
+
+func (e *Event) CallerFile(depth int) *Event {
+	if e == nil {
+		return e
+	}
+	e.fields = append(e.fields, DefaultCallerFile(depth))
+	return e
+}

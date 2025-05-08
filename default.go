@@ -72,12 +72,12 @@ func Sugar() *zap.SugaredLogger { return defaultLogger.Sugar() }
 // Logger return internal logger
 func Logger() *zap.Logger { return defaultLogger.Logger() }
 
-// SetDefaultHook set default hook, which hold always until you call XXXContext.
+// SetDefaultHook set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func SetDefaultHook(hs ...Hook) *Log {
 	return defaultLogger.SetDefaultHook(hs...)
 }
 
-// SetDefaultHookFunc set default hook, which hold always until you call XXXContext.
+// SetDefaultHookFunc set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func SetDefaultHookFunc(hs ...HookFunc) *Log {
 	return defaultLogger.SetDefaultHookFunc(hs...)
 }

@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-/**************************** immutable Valuer ******************************************/
+/**************************** hook func ******************************************/
 
 func wrapperField(field Field) HookFunc {
 	return func(ctx context.Context) Field {

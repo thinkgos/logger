@@ -160,6 +160,14 @@ func (e *Event) DoHook(hs ...Hook) *Event {
 	return e
 }
 
+func (e *Event) Configure(f func(e *Event)) *Event {
+	if e == nil {
+		return e
+	}
+	f(e)
+	return e
+}
+
 // sprintMessage format with fmt.Sprint.
 func sprintMessage(args ...any) string {
 	if len(args) == 0 {

@@ -34,15 +34,6 @@ func Test_LoggerFormater(t *testing.T) {
 	logger.OnDPanic().Printf("DPanicf: %s", "dpanic")
 }
 
-func Test_LoggerKeyValue(t *testing.T) {
-	logger.OnDebug().Pairs("Debug", "pair").Msg("Debug")
-	logger.OnInfo().Pairs("Info", "pair").Msg("Info")
-	logger.OnWarn().Pairs("Warn", "pair").Msg("Warn")
-	logger.OnInfo().Pairs("Info", "pair").Msg("Info")
-	logger.OnError().Pairs("Error", "pair").Msg("Error")
-	logger.OnDPanic().Pairs("DPanic", "pair").Msg("DPanic")
-}
-
 func TestPanic(t *testing.T) {
 	shouldPanic(t, func() {
 		logger.OnPanic().Msg("Panic")
@@ -51,7 +42,7 @@ func TestPanic(t *testing.T) {
 		logger.OnPanic().Printf("Panicf: %s", "panic")
 	})
 	shouldPanic(t, func() {
-		logger.OnPanic().Pairs("panic", "pair").Msg("Panic: pair")
+		logger.OnPanic().Print("Panic: pair")
 	})
 }
 

@@ -102,35 +102,10 @@ func WithNewHookFunc(hs ...HookFunc) *Log {
 	return defaultLogger.WithNewHookFunc(hs...)
 }
 
-// With adds a variadic number of fields to the logging context. It accepts a
-// mix of strongly-typed Field objects and loosely-typed key-value pairs. When
-// processing pairs, the first element of the pair is used as the field key
-// and the second as the field value.
+// With creates a child logger and adds structured context to it. Fields added
+// to the child don't affect the parent, and vice versa.
 //
-// For example,
-//
-//	 sugaredLogger.With(
-//	   "hello", "world",
-//	   "failure", errors.New("oh no"),
-//	   "count", 42,
-//	   "user", User{Name: "alice"},
-//	)
-//
-// is the equivalent of
-//
-//	unsugared.With(
-//	  String("hello", "world"),
-//	  String("failure", "oh no"),
-//	  Stack(),
-//	  Int("count", 42),
-//	  Object("user", User{Name: "alice"}),
-//	)
-//
-// Note that the keys in key-value pairs should be strings. In development,
-// passing a non-string key panics. In production, the logger is more
-// forgiving: a separate error is logged, but the key-value pair is skipped
-// and execution continues. Passing an orphaned key triggers similar behavior:
-// panics in development and errors in production.
+// NOTICE: if you do not need a new log, use [Event.With] instead.
 func With(fields ...Field) *Log { return defaultLogger.With(fields...) }
 
 // Named adds a sub-scope to the logger's name. See Log.Named for details.
@@ -142,15 +117,12 @@ func Sync() error { return defaultLogger.Sync() }
 func OnLevel(level Level) *Event {
 	return defaultLogger.OnLevel(level)
 }
-
 func OnLevelContext(ctx context.Context, level Level) *Event {
 	return defaultLogger.OnLevel(level).WithContext(ctx)
 }
-
 func OnDebug() *Event {
 	return defaultLogger.OnLevel(DebugLevel)
 }
-
 func OnDebugContext(ctx context.Context) *Event {
 	return defaultLogger.OnLevel(DebugLevel).WithContext(ctx)
 }

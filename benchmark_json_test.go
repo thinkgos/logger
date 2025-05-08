@@ -112,58 +112,7 @@ func Benchmark_Json_NativeSugar(b *testing.B) {
 	}
 }
 
-func Benchmark_Json_KeyValuePair(b *testing.B) {
-	b.ReportAllocs()
-	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
-	ctx := context.Background()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		l.OnInfoContext(ctx).
-			Pairs(
-				"name", "jack",
-				"age", 18,
-				dfltCtx(ctx),
-			).
-			Msg("success")
-	}
-}
-
-func Benchmark_Json_KeyValuePairFields(b *testing.B) {
-	b.ReportAllocs()
-	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
-	ctx := context.Background()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		l.OnInfoContext(ctx).
-			Pairs(
-				logger.String("name", "jack"),
-				logger.Int("age", 18),
-				dfltCtx(ctx),
-			).
-			Msg("success")
-	}
-}
-
-func Benchmark_Json_KeyValuePairFields_Use_Hook(b *testing.B) {
-	b.ReportAllocs()
-	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultHook(newDfltHook())
-	ctx := context.Background()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		l.OnInfoContext(ctx).
-			Pairs(
-				logger.String("name", "jack"),
-				logger.Int("age", 18),
-			).
-			Msg("success")
-	}
-}
-
-func Benchmark_Json_KeyValuePairFields_Use_WithFields(b *testing.B) {
+func Benchmark_Json_Use_WithFields(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
@@ -180,7 +129,7 @@ func Benchmark_Json_KeyValuePairFields_Use_WithFields(b *testing.B) {
 	}
 }
 
-func Benchmark_Json_KeyValuePairFields_Use_WithFields_Hook(b *testing.B) {
+func Benchmark_Json_Use_WithFields_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
@@ -197,7 +146,7 @@ func Benchmark_Json_KeyValuePairFields_Use_WithFields_Hook(b *testing.B) {
 	}
 }
 
-func Benchmark_Json_KeyValuePairFields_Use_ExtendHook(b *testing.B) {
+func Benchmark_Json_Use_ExtendHook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
@@ -214,7 +163,7 @@ func Benchmark_Json_KeyValuePairFields_Use_ExtendHook(b *testing.B) {
 	}
 }
 
-func Benchmark_Json_KeyValuePairFields_Use_ExtendHook_Hook(b *testing.B) {
+func Benchmark_Json_Use_ExtendHook_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)

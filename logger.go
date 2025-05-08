@@ -3,7 +3,6 @@ package logger
 import (
 	"context"
 
-	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -290,97 +289,4 @@ func (l *Log) OnFatal() *Event {
 }
 func (l *Log) OnFatalContext(ctx context.Context) *Event {
 	return l.OnLevel(FatalLevel).WithContext(ctx)
-}
-
-const (
-	_oddNumberErrMsg    = "Ignored key without a value."
-	_nonStringKeyErrMsg = "Ignored key-value pairs with non-string keys."
-	_multipleErrMsg     = "Multiple errors without a key."
-)
-
-// copy from zap(sugar.go)
-func (l *Log) appendSweetenFields(ctx context.Context, fields []Field, keysAndValues []any) []Field {
-	if len(keysAndValues) == 0 {
-		return fields
-	}
-
-	var (
-		invalid   invalidPairs
-		seenError bool
-	)
-
-	for i := 0; i < len(keysAndValues); {
-		// This is a strongly-typed field. Consume it and move on.
-		if f, ok := keysAndValues[i].(Field); ok {
-			fields = append(fields, f)
-			i++
-			continue
-		}
-
-		// If it is an error, consume it and move on.
-		if err, ok := keysAndValues[i].(error); ok {
-			if !seenError {
-				seenError = true
-				fields = append(fields, Err(err))
-			} else {
-				l.OnErrorContext(ctx).
-					With(Err(err)).
-					Msg(_multipleErrMsg)
-			}
-			i++
-			continue
-		}
-
-		// Make sure this element isn't a dangling key.
-		if i == len(keysAndValues)-1 {
-			l.OnErrorContext(ctx).
-				With(Any("ignored", keysAndValues[i])).
-				Msg(_oddNumberErrMsg)
-			break
-		}
-
-		// Consume this value and the next, treating them as a key-value pair. If the
-		// key isn't a string, add this pair to the slice of invalid pairs.
-		key, val := keysAndValues[i], keysAndValues[i+1]
-		if keyStr, ok := key.(string); !ok {
-			// Subsequent errors are likely, so allocate once up front.
-			if cap(invalid) == 0 {
-				invalid = make(invalidPairs, 0, len(keysAndValues)/2)
-			}
-			invalid = append(invalid, invalidPair{i, key, val})
-		} else {
-			fields = append(fields, Any(keyStr, val))
-		}
-		i += 2
-	}
-
-	// If we encountered any invalid key-value pairs, log an error.
-	if len(invalid) > 0 {
-		l.OnErrorContext(ctx).
-			With(Array("invalid", invalid)).
-			Msg(_nonStringKeyErrMsg)
-	}
-	return fields
-}
-
-type invalidPair struct {
-	position   int
-	key, value any
-}
-
-func (p invalidPair) MarshalLogObject(enc ObjectEncoder) error {
-	enc.AddInt64("position", int64(p.position))
-	Any("key", p.key).AddTo(enc)
-	Any("value", p.value).AddTo(enc)
-	return nil
-}
-
-type invalidPairs []invalidPair
-
-func (ps invalidPairs) MarshalLogArray(enc ArrayEncoder) error {
-	var err error
-	for i := range ps {
-		err = multierr.Append(err, enc.AppendObject(ps[i]))
-	}
-	return err
 }

@@ -49,7 +49,7 @@ func Benchmark_Text_Logger_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -80,58 +80,7 @@ func Benchmark_Text_NativeSugar(b *testing.B) {
 	}
 }
 
-func Benchmark_Text_KeyValuePair(b *testing.B) {
-	b.ReportAllocs()
-	b.StopTimer()
-	l := newDiscardLogger(logger.FormatConsole)
-	ctx := context.Background()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		l.OnInfoContext(ctx).
-			Pairs(
-				"name", "jack",
-				"age", 18,
-				dfltCtx(ctx),
-			).
-			Msg("success")
-	}
-}
-
-func Benchmark_Text_KeyValuePairFields(b *testing.B) {
-	b.ReportAllocs()
-	b.StopTimer()
-	l := newDiscardLogger(logger.FormatConsole)
-	ctx := context.Background()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		l.OnInfoContext(ctx).
-			Pairs(
-				logger.String("name", "jack"),
-				logger.Int("age", 18),
-				dfltCtx(ctx),
-			).
-			Msg("success")
-	}
-}
-
-func Benchmark_Text_KeyValuePairFields_Use_Hook(b *testing.B) {
-	b.ReportAllocs()
-	b.StopTimer()
-	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultValuer(dfltCtx)
-	ctx := context.Background()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		l.OnInfoContext(ctx).
-			Pairs(
-				logger.String("name", "jack"),
-				logger.Int("age", 18),
-			).
-			Msg("success")
-	}
-}
-
-func Benchmark_Text_KeyValuePairFields_Use_WithFields(b *testing.B) {
+func Benchmark_Text_Use_WithFields(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
@@ -148,11 +97,11 @@ func Benchmark_Text_KeyValuePairFields_Use_WithFields(b *testing.B) {
 	}
 }
 
-func Benchmark_Text_KeyValuePairFields_Use_WithFields_Hook(b *testing.B) {
+func Benchmark_Text_Use_WithFields_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -165,7 +114,7 @@ func Benchmark_Text_KeyValuePairFields_Use_WithFields_Hook(b *testing.B) {
 	}
 }
 
-func Benchmark_Text_KeyValuePairFields_Use_ExtendHook(b *testing.B) {
+func Benchmark_Text_Use_ExtendHook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
@@ -182,11 +131,11 @@ func Benchmark_Text_KeyValuePairFields_Use_ExtendHook(b *testing.B) {
 	}
 }
 
-func Benchmark_Text_KeyValuePairFields_Use_ExtendHook_Hook(b *testing.B) {
+func Benchmark_Text_Use_ExtendHook_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -225,7 +174,7 @@ func Benchmark_Text_Format_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultValuer(dfltCtx)
+	l.SetDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {

@@ -59,31 +59,8 @@ func main() {
 		).
 		Msg(" Debug6")
 
-	// `log.Print`风格的日志
-	logger.OnDebugContext(ctx).Print("Debug")
-	logger.OnInfoContext(ctx).Print("Info")
-	logger.OnWarnContext(ctx).Print("Warn")
-	logger.OnErrorContext(ctx).Print("Error")
-	logger.OnDPanicContext(ctx).Print("DPanic")
-
-	// `log.Printf`风格的日志
-	logger.OnDebugContext(ctx).Printf("Debugf: %s", "debug")
-	logger.OnInfoContext(ctx).Printf("Infof: %s", "info")
-	logger.OnWarnContext(ctx).Printf("Warnf: %s", "warn")
-	logger.OnErrorContext(ctx).Printf("Errorf: %s", "error")
-	logger.OnDPanicContext(ctx).Printf("DPanicf: %s", "dpanic")
-
-	// 松散键值对风格的日志
-	logger.OnDebugContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Debug Pair")
-	logger.OnInfoContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Info Pair")
-	logger.OnWarnContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Warn Pair")
-	logger.OnInfoContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Info Pair")
-	logger.OnErrorContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Error Pair")
-	logger.OnDPanicContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("DPanic Pair")
-
-	// 纯结构型的日志
-	logger.OnDebugContext(ctx).String("k1", "v1").String("k2", "v2").Msg("Debug")
-	logger.OnInfoContext(ctx).String("k1", "v1").String("k2", "v2").Msg("Info")
+	logger.OnDebugContext(ctx).String("k1", "v1").String("k2", "v2").Print("Debug")
+	logger.OnInfoContext(ctx).String("k1", "v1").String("k2", "v2").Printf("Info: %s", "info")
 	logger.OnWarnContext(ctx).String("k1", "v1").String("k2", "v2").Msg("Warn")
 	logger.OnInfoContext(ctx).String("k1", "v1").String("k2", "v2").Msg("Info")
 	logger.OnErrorContext(ctx).String("k1", "v1").String("k2", "v2").Msg("Error")

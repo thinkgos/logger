@@ -108,14 +108,6 @@ func main() {
 	logger.OnErrorContext(ctx).Printf("Errorf: %s", "error")
 	logger.OnDPanicContext(ctx).Printf("DPanicf: %s", "dpanic")
 
-	// 松散键值对风格的日志
-	logger.OnDebugContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Debug Pair")
-	logger.OnInfoContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Info Pair")
-	logger.OnWarnContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Warn Pair")
-	logger.OnInfoContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Info Pair")
-	logger.OnErrorContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("Error Pair")
-	logger.OnDPanicContext(ctx).Pairs("k1", "v1", logger.String("k2", "v2")).Msg("DPanic Pair")
-
 	// 纯结构型的日志
 	logger.OnDebugContext(ctx).String("k1", "v1").String("k2", "v2").Msg("Debug")
 	logger.OnInfoContext(ctx).String("k1", "v1").String("k2", "v2").Msg("Info")

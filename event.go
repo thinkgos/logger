@@ -127,15 +127,6 @@ func (e *Event) Msg(msg string) {
 	e.msg(msg)
 }
 
-// NOTICE: Not Recommended
-func (e *Event) Pairs(keysAndValues ...any) *Event {
-	if e == nil {
-		return e
-	}
-	e.fields = e.log.appendSweetenFields(e.ctx, e.fields, keysAndValues)
-	return e
-}
-
 func (e *Event) With(fields ...Field) *Event {
 	if e == nil {
 		return e

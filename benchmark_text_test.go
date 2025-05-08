@@ -49,7 +49,7 @@ func Benchmark_Text_Logger_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultHookFunc(dfltCtx)
+	l.ExtendDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -101,7 +101,7 @@ func Benchmark_Text_Use_WithFields_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultHookFunc(dfltCtx)
+	l.ExtendDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -135,7 +135,7 @@ func Benchmark_Text_Use_ExtendHook_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultHookFunc(dfltCtx)
+	l.ExtendDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -174,7 +174,7 @@ func Benchmark_Text_Format_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.SetDefaultHookFunc(dfltCtx)
+	l.ExtendDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {

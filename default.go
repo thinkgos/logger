@@ -74,12 +74,12 @@ func Logger() *zap.Logger { return defaultLogger.Logger() }
 
 // SetDefaultHook set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func SetDefaultHook(hs ...Hook) *Log {
-	return defaultLogger.SetDefaultHook(hs...)
+	return defaultLogger.ExtendDefaultHook(hs...)
 }
 
 // SetDefaultHookFunc set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func SetDefaultHookFunc(hs ...HookFunc) *Log {
-	return defaultLogger.SetDefaultHookFunc(hs...)
+	return defaultLogger.ExtendDefaultHookFunc(hs...)
 }
 
 // ExtendHook return new Log with extend Hook.

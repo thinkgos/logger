@@ -81,7 +81,7 @@ func Benchmark_Json_Logger_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultHook(newDfltHook())
+	l.ExtendDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -133,7 +133,7 @@ func Benchmark_Json_Use_WithFields_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultHook(newDfltHook())
+	l.ExtendDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -167,7 +167,7 @@ func Benchmark_Json_Use_ExtendHook_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultHook(newDfltHook())
+	l.ExtendDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -206,7 +206,7 @@ func Benchmark_Json_Format_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
-	l.SetDefaultHook(newDfltHook())
+	l.ExtendDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {

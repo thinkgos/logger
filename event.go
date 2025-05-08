@@ -60,6 +60,7 @@ func (e *Event) WithContext(ctx context.Context) *Event {
 	return e
 }
 
+// ExtendHook extend Hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func (e *Event) ExtendHook(hs ...Hook) *Event {
 	if e == nil {
 		return e
@@ -68,6 +69,7 @@ func (e *Event) ExtendHook(hs ...Hook) *Event {
 	return e
 }
 
+// ExtendHook extend Hook func, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func (e *Event) ExtendHookFunc(hs ...HookFunc) *Event {
 	if e == nil {
 		return e
@@ -78,6 +80,7 @@ func (e *Event) ExtendHookFunc(hs ...HookFunc) *Event {
 	return e
 }
 
+// WithNewHook with new Hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func (e *Event) WithNewHook(hs ...Hook) *Event {
 	if e == nil {
 		return e
@@ -132,6 +135,28 @@ func (e *Event) With(fields ...Field) *Event {
 		return e
 	}
 	e.fields = append(e.fields, fields...)
+	return e
+}
+
+// DoHookFunc do hook func immediately.
+func (e *Event) DoHookFunc(hs ...HookFunc) *Event {
+	if e == nil {
+		return e
+	}
+	for _, f := range hs {
+		e.fields = append(e.fields, f.DoHook(e.ctx))
+	}
+	return e
+}
+
+// DoHookFunc do hook func immediately.
+func (e *Event) DoHook(hs ...Hook) *Event {
+	if e == nil {
+		return e
+	}
+	for _, f := range hs {
+		e.fields = append(e.fields, f.DoHook(e.ctx))
+	}
 	return e
 }
 

@@ -118,7 +118,6 @@ func Sync() error { return defaultLogger.Sync() }
 // OnLevel starts a new message with customize level.
 //
 // You must call Msg on the returned event in order to send the event.
-
 func OnLevel(level Level) *Event {
 	return defaultLogger.OnLevel(level)
 }

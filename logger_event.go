@@ -12,7 +12,6 @@ func (l *Log) OnLevel(level Level) *Event {
 	e := getEvent()
 	e.log = l
 	e.level = level
-	e.hooks = append(e.hooks, l.hooks...)
 	e.ctx = context.Background()
 	return e
 }

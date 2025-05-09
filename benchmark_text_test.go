@@ -80,7 +80,7 @@ func Benchmark_Text_NativeSugar(b *testing.B) {
 	}
 }
 
-func Benchmark_Text_Use_WithFields(b *testing.B) {
+func Benchmark_Text_Use_With(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
@@ -97,11 +97,11 @@ func Benchmark_Text_Use_WithFields(b *testing.B) {
 	}
 }
 
-func Benchmark_Text_Use_WithFields_Hook(b *testing.B) {
+func Benchmark_Text_Use_With_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatConsole)
-	l.ExtendDefaultHookFunc(dfltCtx)
+	l := newDiscardLogger(logger.FormatConsole).
+		ExtendDefaultHookFunc(dfltCtx)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -117,34 +117,16 @@ func Benchmark_Text_Use_WithFields_Hook(b *testing.B) {
 func Benchmark_Text_Use_ExtendHook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatConsole)
+	l := newDiscardLogger(logger.FormatConsole).
+		ExtendHook(
+			&logger.ImmutableString{"name", "jack"},
+			&logger.ImmutableInt{"age", 18},
+			newDfltHook(),
+		)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		l.OnInfoContext(ctx).
-			ExtendHook(
-				&logger.ImmutableString{"name", "jack"},
-				&logger.ImmutableInt{"age", 18},
-				newDfltHook(),
-			).
-			Msg("success")
-	}
-}
-
-func Benchmark_Text_Use_ExtendHook_Hook(b *testing.B) {
-	b.ReportAllocs()
-	b.StopTimer()
-	l := newDiscardLogger(logger.FormatConsole)
-	l.ExtendDefaultHookFunc(dfltCtx)
-	ctx := context.Background()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		l.OnInfoContext(ctx).
-			ExtendHook(
-				&logger.ImmutableString{"name", "jack"},
-				&logger.ImmutableInt{"age", 18},
-				newDfltHook(),
-			).
 			Msg("success")
 	}
 }

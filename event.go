@@ -11,7 +11,6 @@ import (
 var eventPool = &sync.Pool{
 	New: func() any {
 		return &Event{
-			hooks:     make([]Hook, 0, 32),
 			fields:    make([]zap.Field, 0, 32),
 			tmpFields: make([]zap.Field, 0, 64),
 		}
@@ -37,7 +36,6 @@ func putEvent(e *Event) {
 type Event struct {
 	log       *Log
 	level     Level
-	hooks     []Hook
 	fields    []Field
 	tmpFields []Field
 	ctx       context.Context
@@ -47,67 +45,19 @@ func (e *Event) reset() *Event {
 	if e == nil {
 		return e
 	}
-	e.hooks = e.hooks[:0]
 	e.fields = e.fields[:0]
 	e.tmpFields = e.tmpFields[:0]
 	e.ctx = context.Background()
 	return e
 }
 
-// WithContext adds the Go Context to the *Event context.
-// The context is not rendered in the output message, but is available to hooks calls.
-// A typical use case is to extract tracing information from the Go Ctx.
-func (e *Event) WithContext(ctx context.Context) *Event {
-	if e == nil {
-		return e
-	}
-	e.ctx = ctx
-	return e
-}
-
-// ExtendHook extend Hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
-//
-// NOTICE: It is not recommended to use this method, as it will alloc more memory.
-func (e *Event) ExtendHook(hs ...Hook) *Event {
-	if e == nil {
-		return e
-	}
-	e.hooks = append(e.hooks, hs...)
-	return e
-}
-
-// ExtendHook extend Hook func, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
-//
-// NOTICE: It is not recommended to use this method, as it will alloc more memory.
-func (e *Event) ExtendHookFunc(hs ...HookFunc) *Event {
-	if e == nil {
-		return e
-	}
-	for _, f := range hs {
-		e.hooks = append(e.hooks, f)
-	}
-	return e
-}
-
-// WithNewHook with new Hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
-//
-// NOTICE: It is not recommended to use this method, as it will alloc more memory.
-func (e *Event) WithNewHook(hs ...Hook) *Event {
-	if e == nil {
-		return e
-	}
-	e.hooks = e.hooks[:0]
-	e.hooks = append(e.hooks, hs...)
-	return e
-}
-
 func (e *Event) msg(msg string) {
 	defer putEvent(e)
-	if needCaller := e.log.callerCore.Enabled(e.level); needCaller || len(e.hooks) > 0 {
+	if needCaller := e.log.callerCore.Enabled(e.level); needCaller || len(e.log.hooks) > 0 {
 		if needCaller {
 			e.tmpFields = append(e.tmpFields, e.log.callerCore.Caller(e.log.callerCore.Skip, e.log.callerCore.SkipPackages...))
 		}
-		for _, h := range e.hooks {
+		for _, h := range e.log.hooks {
 			e.tmpFields = append(e.tmpFields, h.DoHook(e.ctx))
 		}
 		e.tmpFields = append(e.tmpFields, e.fields...)
@@ -141,6 +91,17 @@ func (e *Event) Msg(msg string) {
 	e.msg(msg)
 }
 
+// WithContext adds the Go Context to the *Event context.
+// The context is not rendered in the output message, but is available to hooks calls.
+// A typical use case is to extract tracing information from the Go Ctx.
+func (e *Event) WithContext(ctx context.Context) *Event {
+	if e == nil {
+		return e
+	}
+	e.ctx = ctx
+	return e
+}
+
 func (e *Event) With(fields ...Field) *Event {
 	if e == nil {
 		return e
@@ -160,7 +121,7 @@ func (e *Event) DoHookFunc(hs ...HookFunc) *Event {
 	return e
 }
 
-// DoHookFunc do hook func immediately.
+// DoHookFunc do hook immediately.
 func (e *Event) DoHook(hs ...Hook) *Event {
 	if e == nil {
 		return e

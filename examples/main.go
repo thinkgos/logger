@@ -30,9 +30,6 @@ func main() {
 
 	ctx := context.WithValue(context.Background(), ctxKey{}, "ctx_val1")
 
-	logger.OnDebugContext(ctx).ExtendHookFunc(TmpHook).Msg("Debug1")
-	logger.OnDebugContext(ctx).WithNewHook(logger.HookFunc(TmpHook)).Msg("Debug2")
-
 	logger.SetLevel(logger.WarnLevel)
 	logger.OnDebugContext(ctx).Msg("Debug3")
 

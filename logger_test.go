@@ -82,8 +82,8 @@ func Test_Logger_Context(t *testing.T) {
 		}
 		return logger.String("ctx_key", s)
 	}
-	logger.OnDebugContext(ctx).
-		ExtendHookFunc(ctxValuer).
+	logger.ExtendHookFunc(ctxValuer).
+		OnDebugContext(ctx).
 		Msg("with context")
 }
 

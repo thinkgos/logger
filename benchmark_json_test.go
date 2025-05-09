@@ -80,8 +80,8 @@ func Benchmark_Json_Logger(b *testing.B) {
 func Benchmark_Json_Logger_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
-	l.ExtendDefaultHook(newDfltHook())
+	l := newDiscardLogger(logger.FormatJson).
+		ExtendDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -112,7 +112,7 @@ func Benchmark_Json_NativeSugar(b *testing.B) {
 	}
 }
 
-func Benchmark_Json_Use_WithFields(b *testing.B) {
+func Benchmark_Json_Use_With(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson)
@@ -129,11 +129,11 @@ func Benchmark_Json_Use_WithFields(b *testing.B) {
 	}
 }
 
-func Benchmark_Json_Use_WithFields_Hook(b *testing.B) {
+func Benchmark_Json_Use_With_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
-	l.ExtendDefaultHook(newDfltHook())
+	l := newDiscardLogger(logger.FormatJson).
+		ExtendDefaultHook(newDfltHook())
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -149,34 +149,16 @@ func Benchmark_Json_Use_WithFields_Hook(b *testing.B) {
 func Benchmark_Json_Use_ExtendHook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
+	l := newDiscardLogger(logger.FormatJson).
+		ExtendHook(
+			&logger.ImmutableString{"name", "jack"},
+			&logger.ImmutableInt{"age", 18},
+			newDfltHook(),
+		)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		l.OnInfoContext(ctx).
-			ExtendHook(
-				&logger.ImmutableString{"name", "jack"},
-				&logger.ImmutableInt{"age", 18},
-				newDfltHook(),
-			).
-			Msg("success")
-	}
-}
-
-func Benchmark_Json_Use_ExtendHook_Hook(b *testing.B) {
-	b.ReportAllocs()
-	b.StopTimer()
-	l := newDiscardLogger(logger.FormatJson)
-	l.ExtendDefaultHook(newDfltHook())
-	ctx := context.Background()
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
-		l.OnInfoContext(ctx).
-			ExtendHook(
-				&logger.ImmutableString{"name", "jack"},
-				&logger.ImmutableInt{"age", 18},
-				newDfltHook(),
-			).
 			Msg("success")
 	}
 }

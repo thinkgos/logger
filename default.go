@@ -106,7 +106,7 @@ func WithNewHookFunc(hs ...HookFunc) *Log {
 // With creates a child log and adds structured context to it. Fields added
 // to the child don't affect the parent, and vice versa.
 //
-// NOTICE: if you do not need a new log, use [Event.With] instead.
+// NOTICE: if you do not need a child log, use [Event.With] instead.
 func With(fields ...Field) *Log { return defaultLogger.With(fields...) }
 
 // Named adds a sub-scope to the logger's name. See Log.Named for details.

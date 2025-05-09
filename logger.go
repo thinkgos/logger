@@ -212,7 +212,7 @@ func (l *Log) WithNewHookFunc(hs ...HookFunc) *Log {
 // With creates a child log and adds structured context to it. Fields added
 // to the child don't affect the parent, and vice versa.
 //
-// NOTICE: if you do not need a new log, use [Event.With] instead.
+// NOTICE: if you do not need a child log, use [Event.With] instead.
 func (l *Log) With(fields ...Field) *Log {
 	return &Log{
 		log:        l.log.With(fields...),

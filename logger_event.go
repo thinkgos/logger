@@ -120,3 +120,59 @@ func (l *Log) OnFatal() *Event {
 func (l *Log) OnFatalContext(ctx context.Context) *Event {
 	return l.OnLevel(FatalLevel).WithContext(ctx)
 }
+
+func (l *Log) Debug(args ...any) {
+	l.OnDebug().Print(args...)
+}
+
+func (l *Log) Info(args ...any) {
+	l.OnInfo().Print(args...)
+}
+
+func (l *Log) Warn(args ...any) {
+	l.OnWarn().Print(args...)
+}
+
+func (l *Log) Error(args ...any) {
+	l.OnError().Print(args...)
+}
+
+func (l *Log) Panic(args ...any) {
+	l.OnPanic().Print(args...)
+}
+
+func (l *Log) DPanic(args ...any) {
+	l.OnDPanic().Print(args...)
+}
+
+func (l *Log) Fatal(args ...any) {
+	l.OnFatal().Print(args...)
+}
+
+func (l *Log) Debugf(template string, args ...any) {
+	l.OnDebug().Printf(template, args...)
+}
+
+func (l *Log) Infof(template string, args ...any) {
+	l.OnInfo().Printf(template, args...)
+}
+
+func (l *Log) Warnf(template string, args ...any) {
+	l.OnWarn().Printf(template, args...)
+}
+
+func (l *Log) Errorf(template string, args ...any) {
+	l.OnError().Printf(template, args...)
+}
+
+func (l *Log) Panicf(template string, args ...any) {
+	l.OnPanic().Printf(template, args...)
+}
+
+func (l *Log) DPanicf(template string, args ...any) {
+	l.OnDPanic().Printf(template, args...)
+}
+
+func (l *Log) Fatalf(template string, args ...any) {
+	l.OnFatal().Printf(template, args...)
+}

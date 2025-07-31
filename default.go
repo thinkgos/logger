@@ -226,3 +226,59 @@ func OnFatal() *Event {
 func OnFatalContext(ctx context.Context) *Event {
 	return defaultLogger.OnLevel(FatalLevel).WithContext(ctx)
 }
+
+func Debug(args ...any) {
+	OnDebug().Print(args...)
+}
+
+func Info(args ...any) {
+	OnInfo().Print(args...)
+}
+
+func Warn(args ...any) {
+	OnWarn().Print(args...)
+}
+
+func Error(args ...any) {
+	OnError().Print(args...)
+}
+
+func Panic(args ...any) {
+	OnPanic().Print(args...)
+}
+
+func DPanic(args ...any) {
+	OnDPanic().Print(args...)
+}
+
+func Fatal(args ...any) {
+	OnFatal().Print(args...)
+}
+
+func Debugf(template string, args ...any) {
+	OnDebug().Printf(template, args...)
+}
+
+func Infof(template string, args ...any) {
+	OnInfo().Printf(template, args...)
+}
+
+func Warnf(template string, args ...any) {
+	OnWarn().Printf(template, args...)
+}
+
+func Errorf(template string, args ...any) {
+	OnError().Printf(template, args...)
+}
+
+func Panicf(template string, args ...any) {
+	OnPanic().Printf(template, args...)
+}
+
+func DPanicf(template string, args ...any) {
+	OnDPanic().Printf(template, args...)
+}
+
+func Fatalf(template string, args ...any) {
+	OnFatal().Printf(template, args...)
+}

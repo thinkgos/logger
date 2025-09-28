@@ -1,3 +1,5 @@
+permissions:
+  contents: read
 name: Lint
 
 on:
@@ -6,8 +8,8 @@ on:
       - "**.md"
 
 jobs:
-  golangci:
-    name: Golangci-Lint
+  golang-ci:
+    name: GolangCi-Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

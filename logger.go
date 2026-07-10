@@ -272,6 +272,17 @@ func (l *Log) Named(name string) *Log {
 	}
 }
 
+// Clone the log.
+func (l *Log) Clone() *Log {
+	clone := *l.log
+	return &Log{
+		log:        &clone,
+		level:      l.level,
+		hooks:      l.hooks,
+		callerCore: l.callerCore,
+	}
+}
+
 // Sync flushes any buffered log entries.
 func (l *Log) Sync() error {
 	return l.log.Sync()

@@ -42,13 +42,13 @@ func NewSlogHandler(logger *Log, opts ...HandlerOption) *SlogHandler {
 // Enabled reports whether the handler handles records at the given level.
 // It mirrors Logger.should's level and writer checks (without sampling).
 func (h *SlogHandler) Enabled(_ context.Context, level slog.Level) bool {
-	return h.logger.Enabled(convertSlogLevel(level))
+	return h.logger.Enabled(ConvertSlogLevel(level))
 }
 
 // Handle handles the Record. It converts the slog.Record into a logger event
 // and writes it using the underlying logger.Log.
 func (h *SlogHandler) Handle(ctx context.Context, record slog.Record) error {
-	lz := convertSlogLevel(record.Level)
+	lz := ConvertSlogLevel(record.Level)
 	event := h.logger.OnLevel(lz)
 	if event == nil {
 		return nil
@@ -116,10 +116,10 @@ func (h *SlogHandler) clone() *SlogHandler {
 	return h2
 }
 
-// convertSlogLevel maps slog Levels to zap Levels.
+// ConvertSlogLevel maps slog Levels to zap Levels.
 // Note that there is some room between slog levels while zap levels are continuous, so we can't 1:1 map them.
 // See also https://go.googlesource.com/proposal/+/master/design/56345-structured-logging.md?pli=1#levels
-func convertSlogLevel(l slog.Level) Level {
+func ConvertSlogLevel(l slog.Level) Level {
 	switch {
 	case l >= slog.LevelError:
 		return ErrorLevel
@@ -129,6 +129,21 @@ func convertSlogLevel(l slog.Level) Level {
 		return InfoLevel
 	default:
 		return DebugLevel
+	}
+}
+
+func ConvertLevel(level Level) slog.Level {
+	switch level {
+	case DebugLevel:
+		return slog.LevelDebug
+	case InfoLevel:
+		return slog.LevelInfo
+	case WarnLevel:
+		return slog.LevelWarn
+	case ErrorLevel, DPanicLevel, PanicLevel, FatalLevel:
+		return slog.LevelError
+	default:
+		return slog.LevelError
 	}
 }
 

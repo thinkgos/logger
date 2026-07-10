@@ -221,6 +221,10 @@ func appendSlogAttr(event *Event, attr slog.Attr, prefix string) *Event {
 		default:
 			event = event.Any(key, v)
 		}
+	case slog.KindGroup:
+		fallthrough
+	case slog.KindLogValuer:
+		fallthrough
 	default:
 		event = event.Any(key, val.Any())
 	}

@@ -19,11 +19,24 @@ type SlogHandler struct {
 	attrs   []slog.Attr
 }
 
+type HandlerOption func(*SlogHandler)
+
+// WithTimeKey sets the time field name.
+func WithTimeKey(key string) HandlerOption {
+	return func(h *SlogHandler) {
+		h.timeKey = key
+	}
+}
+
 // NewSlogHandler creates a new slog.Handler that writes log records to the
 // given logger.Log. The handler maps slog levels to logger levels and
 // converts slog attributes to logger fields.
-func NewSlogHandler(logger *Log) *SlogHandler {
-	return &SlogHandler{logger: logger}
+func NewSlogHandler(logger *Log, opts ...HandlerOption) *SlogHandler {
+	h := &SlogHandler{logger: logger, timeKey: "time"}
+	for _, opt := range opts {
+		opt(h)
+	}
+	return h
 }
 
 // Enabled reports whether the handler handles records at the given level.
@@ -35,8 +48,8 @@ func (h *SlogHandler) Enabled(_ context.Context, level slog.Level) bool {
 // Handle handles the Record. It converts the slog.Record into a logger event
 // and writes it using the underlying logger.Log.
 func (h *SlogHandler) Handle(ctx context.Context, record slog.Record) error {
-	zlevel := convertSlogLevel(record.Level)
-	event := h.logger.OnLevel(zlevel)
+	lz := convertSlogLevel(record.Level)
+	event := h.logger.OnLevel(lz)
 	if event == nil {
 		return nil
 	}
@@ -60,7 +73,6 @@ func (h *SlogHandler) Handle(ctx context.Context, record slog.Record) error {
 	if !record.Time.IsZero() {
 		event.Time(h.timeKey, record.Time)
 	}
-
 	event.Msg(record.Message)
 	return nil
 }

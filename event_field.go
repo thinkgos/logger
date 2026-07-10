@@ -7,6 +7,10 @@ import (
 	"go.uber.org/zap"
 )
 
+func (e *Event) Fields(fields ...Field) *Event {
+	return e.With(fields...)
+}
+
 func (e *Event) Error(val error) *Event {
 	if e == nil {
 		return e

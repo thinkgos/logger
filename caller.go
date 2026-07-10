@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"context"
 	"runtime"
 	"strconv"
 	"strings"
@@ -28,8 +27,8 @@ func NewCallerCore() *CallerCore {
 }
 
 // AddSkip add the number of callers skipped by caller annotation.
-func (c *CallerCore) AddSkip(callerSkip int) *CallerCore {
-	c.Skip += callerSkip
+func (c *CallerCore) AddSkip(skip int) *CallerCore {
+	c.Skip += skip
 	return c
 }
 
@@ -97,20 +96,6 @@ func DefaultCaller(depth int, skipPackages ...string) Field {
 	return zap.String("caller", file[idx+1:]+":"+strconv.Itoa(line))
 }
 
-// File returns a Valuer that returns a pkg/file:line description of the caller.
-func File(depth int, skipPackages ...string) HookFunc {
-	return func(context.Context) Field {
-		return DefaultCallerFile(depth, skipPackages...)
-	}
-}
-
-// Caller returns a Valuer that returns a pkg/file:line description of the caller.
-func Caller(depth int, skipPackages ...string) HookFunc {
-	return func(context.Context) Field {
-		return DefaultCaller(depth, skipPackages...)
-	}
-}
-
 func skipPackage(file string, skipPackages ...string) bool {
 	if strings.HasSuffix(file, "_test.go") {
 		return false
@@ -124,4 +109,29 @@ func skipPackage(file string, skipPackages ...string) bool {
 		}
 	}
 	return false
+}
+
+type callerHook struct {
+	depth        int
+	skipPackages []string
+}
+
+func (h callerHook) RunHook(e *Event) {
+	e.Fields(DefaultCaller(h.depth, h.skipPackages...))
+}
+
+// Caller returns a Valuer that returns a pkg/file:line description of the caller.
+func Caller(depth int, skipPackages ...string) Hook {
+	return callerHook{depth: depth, skipPackages: skipPackages}
+}
+
+type callerFileHook callerHook
+
+func (h callerFileHook) RunHook(e *Event) {
+	e.Fields(DefaultCallerFile(h.depth, h.skipPackages...))
+}
+
+// File returns a Valuer that returns a pkg/file:line description of the caller.
+func File(depth int, skipPackages ...string) Hook {
+	return callerFileHook{depth: depth, skipPackages: skipPackages}
 }

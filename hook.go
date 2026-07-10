@@ -6,11 +6,20 @@ import (
 
 // Hook defines an interface to a log hook.
 type Hook interface {
-	DoHook(ctx context.Context) Field
+	RunHook(e *Event)
 }
 
-// HookFunc is an adaptor to allow the use of an ordinary function as a Hook.
-type HookFunc func(context.Context) Field
+type HookFunc func(e *Event)
 
-// DoHook implements the Hook interface.
-func (hf HookFunc) DoHook(ctx context.Context) Field { return hf(ctx) }
+// RunHook implements the Hook interface.
+func (f HookFunc) RunHook(e *Event) {
+	f(e)
+}
+
+// HookField is an adaptor to allow the use of an ordinary function as a Hook.
+type HookField func(context.Context) Field
+
+// RunHook implements the Hook interface.
+func (f HookField) RunHook(e *Event) {
+	e.Fields(f(e.Context()))
+}

@@ -116,26 +116,6 @@ func (l *Log) SetLevel(lv Level) *Log {
 	return l
 }
 
-// ExtendDefaultHook set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
-func (l *Log) ExtendDefaultHook(hs ...Hook) *Log {
-	hooks := make([]Hook, len(l.hooks)+len(hs))
-	copy(hooks, l.hooks)
-	copy(hooks[len(l.hooks):], hs)
-	l.hooks = hooks
-	return l
-}
-
-// ExtendDefaultHookFunc set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
-func (l *Log) ExtendDefaultHookFunc(hs ...HookFunc) *Log {
-	hooks := make([]Hook, len(l.hooks)+len(hs))
-	copy(hooks, l.hooks)
-	for i := range hs {
-		hooks[len(l.hooks)+i] = hs[i]
-	}
-	l.hooks = hooks
-	return l
-}
-
 // GetLevel returns the minimum enabled log level.
 func (l *Log) GetLevel() Level { return l.level.Level() }
 
@@ -155,6 +135,37 @@ func (l *Log) Sugar() *zap.SugaredLogger { return l.log.Sugar() }
 // Logger return internal [zap.Logger]
 func (l *Log) Logger() *zap.Logger { return l.log }
 
+// ExtendDefaultHook extend default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+func (l *Log) ExtendDefaultHook(hs ...Hook) *Log {
+	hooks := make([]Hook, len(l.hooks)+len(hs))
+	copy(hooks, l.hooks)
+	copy(hooks[len(l.hooks):], hs)
+	l.hooks = hooks
+	return l
+}
+
+// ExtendDefaultHookFunc extend default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+func (l *Log) ExtendDefaultHookFunc(hs ...HookFunc) *Log {
+	hooks := make([]Hook, len(l.hooks)+len(hs))
+	copy(hooks, l.hooks)
+	for i := range hs {
+		hooks[len(l.hooks)+i] = hs[i]
+	}
+	l.hooks = hooks
+	return l
+}
+
+// ExtendDefaultHookField extend default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+func (l *Log) ExtendDefaultHookField(hs ...HookField) *Log {
+	hooks := make([]Hook, len(l.hooks)+len(hs))
+	copy(hooks, l.hooks)
+	for i := range hs {
+		hooks[len(l.hooks)+i] = hs[i]
+	}
+	l.hooks = hooks
+	return l
+}
+
 // ExtendHook creates a child log with extend Hook.
 func (l *Log) ExtendHook(hs ...Hook) *Log {
 	hooks := make([]Hook, len(l.hooks)+len(hs))
@@ -168,8 +179,23 @@ func (l *Log) ExtendHook(hs ...Hook) *Log {
 	}
 }
 
-// ExtendHookFunc creates a child log with extend Hook.
+// ExtendHookFunc creates a child log with extend HookFunc.
 func (l *Log) ExtendHookFunc(hs ...HookFunc) *Log {
+	hooks := make([]Hook, len(l.hooks)+len(hs))
+	copy(hooks, l.hooks)
+	for i := range hs {
+		hooks[len(l.hooks)+i] = hs[i]
+	}
+	return &Log{
+		log:        l.log,
+		level:      l.level,
+		hooks:      hooks,
+		callerCore: l.callerCore,
+	}
+}
+
+// ExtendHookField creates a child log with extend HookField.
+func (l *Log) ExtendHookField(hs ...HookField) *Log {
 	hooks := make([]Hook, len(l.hooks)+len(hs))
 	copy(hooks, l.hooks)
 	for i := range hs {
@@ -195,8 +221,22 @@ func (l *Log) WithNewHook(hs ...Hook) *Log {
 	}
 }
 
-// WithNewHookFunc creates a child log with new hook func without default hook.
+// WithNewHookFunc creates a child log with new hook without default hook.
 func (l *Log) WithNewHookFunc(hs ...HookFunc) *Log {
+	hooks := make([]Hook, len(hs))
+	for i := range hs {
+		hooks[i] = hs[i]
+	}
+	return &Log{
+		log:        l.log,
+		level:      l.level,
+		hooks:      hooks,
+		callerCore: l.callerCore,
+	}
+}
+
+// WithNewHookField creates a child log with new hook without default hook.
+func (l *Log) WithNewHookField(hs ...HookField) *Log {
 	hooks := make([]Hook, len(hs))
 	for i := range hs {
 		hooks[i] = hs[i]

@@ -25,7 +25,7 @@ func Benchmark_Text_NativeLogger(b *testing.B) {
 		l.Info("success",
 			zap.String("name", "jack"),
 			zap.Int("age", 18),
-			dfltCtx(ctx),
+			dfltHookField(ctx),
 		)
 	}
 }
@@ -40,7 +40,7 @@ func Benchmark_Text_Logger(b *testing.B) {
 		l.OnInfoContext(ctx).
 			String("name", "jack").
 			Int("age", 18).
-			With(dfltCtx(ctx)).
+			With(dfltHookField(ctx)).
 			Msg("success")
 	}
 }
@@ -49,7 +49,7 @@ func Benchmark_Text_Logger_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole)
-	l.ExtendDefaultHookFunc(dfltCtx)
+	l.ExtendDefaultHookField(dfltHookField)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -75,7 +75,7 @@ func Benchmark_Text_NativeSugar(b *testing.B) {
 		l.Infow("success",
 			"name", "jack",
 			"age", 18,
-			dfltCtx(ctx),
+			dfltHookField(ctx),
 		)
 	}
 }
@@ -91,7 +91,7 @@ func Benchmark_Text_Use_With(b *testing.B) {
 			With(
 				logger.String("name", "jack"),
 				logger.Int("age", 18),
-				dfltCtx(ctx),
+				dfltHookField(ctx),
 			).
 			Msg("success")
 	}
@@ -101,7 +101,7 @@ func Benchmark_Text_Use_With_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole).
-		ExtendDefaultHookFunc(dfltCtx)
+		ExtendDefaultHookField(dfltHookField)
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -119,9 +119,8 @@ func Benchmark_Text_Use_ExtendHook(b *testing.B) {
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole).
 		ExtendHook(
-			&logger.ImmutableString{"name", "jack"},
-			&logger.ImmutableInt{"age", 18},
-			newDfltHook(),
+			&ImmutableMetadata{name: "jack", age: 18},
+			&ImmutableDflt{},
 		)
 	ctx := context.Background()
 	b.StartTimer()
@@ -136,9 +135,8 @@ func Benchmark_Text_Format(b *testing.B) {
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole).
 		ExtendDefaultHook(
-			newDfltHook(),
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
+			&ImmutableDflt{},
+			&ImmutableMetadata{name: "jack", age: 18},
 		)
 	ctx := context.Background()
 	b.StartTimer()
@@ -153,9 +151,8 @@ func Benchmark_Text_Format_Use_Hook(b *testing.B) {
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatConsole).
 		ExtendDefaultHook(
-			newDfltHook(),
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
+			&ImmutableDflt{},
+			&ImmutableMetadata{name: "jack", age: 18},
 		)
 	ctx := context.Background()
 	b.StartTimer()

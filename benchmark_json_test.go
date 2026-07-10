@@ -31,15 +31,25 @@ func newDiscardLogger(format string) *logger.Log {
 		logger.WithFormat(format),
 	)
 }
-func dfltCtx(ctx context.Context) logger.Field {
-	return zap.String("dflt_key", "dflt_value")
+
+type ImmutableMetadata struct {
+	name string
+	age  int
 }
 
-func newDfltHook() logger.Hook {
-	return &logger.ImmutableString{
-		Key:   "dflt_key",
-		Value: "dflt_value",
-	}
+func (m ImmutableMetadata) RunHook(e *logger.Event) {
+	e.String("name", m.name).
+		Int("age", m.age)
+}
+
+type ImmutableDflt struct{}
+
+func (m ImmutableDflt) RunHook(e *logger.Event) {
+	e.String("dflt_key", "dflt_value")
+}
+
+func dfltHookField(ctx context.Context) logger.Field {
+	return zap.String("dflt_key", "dflt_value")
 }
 
 func Benchmark_Json_NativeLogger(b *testing.B) {
@@ -57,7 +67,7 @@ func Benchmark_Json_NativeLogger(b *testing.B) {
 		l.Info("success",
 			zap.String("name", "jack"),
 			zap.Int("age", 18),
-			dfltCtx(ctx),
+			dfltHookField(ctx),
 		)
 	}
 }
@@ -72,7 +82,7 @@ func Benchmark_Json_Logger(b *testing.B) {
 		l.OnInfoContext(ctx).
 			String("name", "jack").
 			Int("age", 18).
-			With(dfltCtx(ctx)).
+			With(dfltHookField(ctx)).
 			Msg("success")
 	}
 }
@@ -81,7 +91,7 @@ func Benchmark_Json_Logger_Use_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson).
-		ExtendDefaultHook(newDfltHook())
+		ExtendDefaultHook(ImmutableDflt{})
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -107,7 +117,7 @@ func Benchmark_Json_NativeSugar(b *testing.B) {
 		l.Infow("success",
 			"name", "jack",
 			"age", 18,
-			dfltCtx(ctx),
+			dfltHookField(ctx),
 		)
 	}
 }
@@ -123,7 +133,7 @@ func Benchmark_Json_Use_With(b *testing.B) {
 			With(
 				logger.String("name", "jack"),
 				logger.Int("age", 18),
-				dfltCtx(ctx),
+				dfltHookField(ctx),
 			).
 			Msg("success")
 	}
@@ -133,7 +143,7 @@ func Benchmark_Json_Use_With_Hook(b *testing.B) {
 	b.ReportAllocs()
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson).
-		ExtendDefaultHook(newDfltHook())
+		ExtendDefaultHook(&ImmutableDflt{})
 	ctx := context.Background()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -151,9 +161,8 @@ func Benchmark_Json_Use_ExtendHook(b *testing.B) {
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson).
 		ExtendHook(
-			&logger.ImmutableString{"name", "jack"},
-			&logger.ImmutableInt{"age", 18},
-			newDfltHook(),
+			ImmutableMetadata{name: "jack", age: 18},
+			&ImmutableDflt{},
 		)
 	ctx := context.Background()
 	b.StartTimer()
@@ -168,9 +177,8 @@ func Benchmark_Json_Format(b *testing.B) {
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson).
 		ExtendDefaultHook(
-			newDfltHook(),
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
+			ImmutableMetadata{name: "jack", age: 18},
+			&ImmutableDflt{},
 		)
 	ctx := context.Background()
 	b.StartTimer()
@@ -185,9 +193,8 @@ func Benchmark_Json_Format_Use_Hook(b *testing.B) {
 	b.StopTimer()
 	l := newDiscardLogger(logger.FormatJson).
 		ExtendDefaultHook(
-			newDfltHook(),
-			logger.ImmutString("name", "jack"),
-			logger.ImmutInt("age", 18),
+			ImmutableMetadata{name: "jack", age: 18},
+			&ImmutableDflt{},
 		)
 	ctx := context.Background()
 	b.StartTimer()

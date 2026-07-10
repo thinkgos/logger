@@ -4,15 +4,12 @@ import (
 	"context"
 	"fmt"
 	"sync"
-
-	"go.uber.org/zap"
 )
 
 var eventPool = &sync.Pool{
 	New: func() any {
 		return &Event{
-			fields:    make([]zap.Field, 0, 32),
-			tmpFields: make([]zap.Field, 0, 64),
+			fields: make([]Field, 0, 32),
 		}
 	},
 }
@@ -34,11 +31,10 @@ func putEvent(e *Event) {
 // Event represents a log event.
 // It is instanced by one of the level method of Logger and finalized by the Msg, Print, Printf method.
 type Event struct {
-	log       *Log
-	level     Level
-	fields    []Field
-	tmpFields []Field
-	ctx       context.Context
+	log    *Log
+	level  Level
+	fields []Field
+	ctx    context.Context
 }
 
 func (e *Event) reset() *Event {
@@ -46,26 +42,26 @@ func (e *Event) reset() *Event {
 		return e
 	}
 	e.fields = e.fields[:0]
-	e.tmpFields = e.tmpFields[:0]
 	e.ctx = context.Background()
 	return e
 }
 
 func (e *Event) msg(msg string) {
 	defer putEvent(e)
-	if needCaller := e.log.callerCore.Enabled(e.level); needCaller || len(e.log.hooks) > 0 {
-		if needCaller {
-			e.tmpFields = append(e.tmpFields, e.log.callerCore.Caller(e.log.callerCore.Skip, e.log.callerCore.SkipPackages...))
-		}
-		for _, h := range e.log.hooks {
-			e.tmpFields = append(e.tmpFields, h.DoHook(e.ctx))
-		}
-		e.tmpFields = append(e.tmpFields, e.fields...)
-		e.log.log.Log(e.level, msg, e.tmpFields...)
-	} else {
-		e.log.log.Log(e.level, msg, e.fields...)
+	if needCaller := e.log.callerCore.Enabled(e.level); needCaller {
+		e.fields = append(e.fields, e.log.callerCore.Caller(e.log.callerCore.Skip, e.log.callerCore.SkipPackages...))
 	}
+	for _, h := range e.log.hooks {
+		h.RunHook(e)
+	}
+	e.log.log.Log(e.level, msg, e.fields...)
 }
+
+// Context returns the context of the event.
+func (e *Event) Context() context.Context { return e.ctx }
+
+// Level returns the level of the event.
+func (e *Event) Level() Level { return e.level }
 
 // NOTICE: once this method is called, the *Event should be disposed.
 func (e *Event) Print(args ...any) {
@@ -110,33 +106,33 @@ func (e *Event) With(fields ...Field) *Event {
 	return e
 }
 
-// DoHookFunc do hook func immediately.
-func (e *Event) DoHookFunc(hs ...HookFunc) *Event {
+// Hook hook immediately.
+func (e *Event) Hook(hs ...Hook) *Event {
 	if e == nil {
 		return e
 	}
 	for _, f := range hs {
-		e.fields = append(e.fields, f.DoHook(e.ctx))
+		f.RunHook(e)
 	}
 	return e
 }
 
-// DoHookFunc do hook immediately.
-func (e *Event) DoHook(hs ...Hook) *Event {
-	if e == nil {
-		return e
-	}
-	for _, f := range hs {
-		e.fields = append(e.fields, f.DoHook(e.ctx))
-	}
-	return e
-}
-
-func (e *Event) Configure(f func(e *Event)) *Event {
+func (e *Event) HookFunc(f HookFunc) *Event {
 	if e == nil {
 		return e
 	}
 	f(e)
+	return e
+}
+
+// HookField hook field immediately.
+func (e *Event) HookField(hs ...HookField) *Event {
+	if e == nil {
+		return e
+	}
+	for _, f := range hs {
+		f.RunHook(e)
+	}
 	return e
 }
 

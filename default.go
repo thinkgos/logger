@@ -73,14 +73,19 @@ func Sugar() *zap.SugaredLogger { return defaultLogger.Sugar() }
 // Logger return internal logger
 func Logger() *zap.Logger { return defaultLogger.Logger() }
 
-// ExtendDefaultHook set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+// ExtendDefaultHook extend default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func ExtendDefaultHook(hs ...Hook) *Log {
 	return defaultLogger.ExtendDefaultHook(hs...)
 }
 
-// ExtendDefaultHookFunc set default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+// ExtendDefaultHookFunc extend default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
 func ExtendDefaultHookFunc(hs ...HookFunc) *Log {
 	return defaultLogger.ExtendDefaultHookFunc(hs...)
+}
+
+// ExtendDefaultHookField extend default hook, which hold always until you call [Event.Msg]/[Event.Print]/[Event.Printf].
+func ExtendDefaultHookField(hs ...HookField) *Log {
+	return defaultLogger.ExtendDefaultHookField(hs...)
 }
 
 // ExtendHook creates a child log with extend Hook.
@@ -88,9 +93,14 @@ func ExtendHook(hs ...Hook) *Log {
 	return defaultLogger.ExtendHook(hs...)
 }
 
-// ExtendHookFunc creates a child log  with extend Hook.
+// ExtendHookFunc creates a child log with extend HookFunc.
 func ExtendHookFunc(hs ...HookFunc) *Log {
 	return defaultLogger.ExtendHookFunc(hs...)
+}
+
+// ExtendHookField creates a child log with extend HookField.
+func ExtendHookField(hs ...HookField) *Log {
+	return defaultLogger.ExtendHookField(hs...)
 }
 
 // WithNewHook creates a child log with new hook without default hook.
@@ -98,9 +108,14 @@ func WithNewHook(hs ...Hook) *Log {
 	return defaultLogger.WithNewHook(hs...)
 }
 
-// WithNewHookFunc creates a child log with new hook func without default hook.
+// WithNewHookFunc creates a child log with new hook without default hook.
 func WithNewHookFunc(hs ...HookFunc) *Log {
 	return defaultLogger.WithNewHookFunc(hs...)
+}
+
+// WithNewHookField creates a child log with new hook without default hook.
+func WithNewHookField(hs ...HookField) *Log {
+	return defaultLogger.WithNewHookField(hs...)
 }
 
 // With creates a child log and adds structured context to it. Fields added

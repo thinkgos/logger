@@ -10,12 +10,12 @@ import (
 func init() {
 	l, lv := logger.New(logger.WithLevel(logger.DebugLevel.String()))
 	logger.ReplaceGlobals(logger.NewLoggerWith(l, lv))
-	logger.ExtendDefaultHookFunc(
-		logger.Caller(3),
-		func(ctx context.Context) logger.Field {
-			return logger.String("deft_key1", "deft_val1")
-		},
-	)
+	logger.ExtendDefaultHook(logger.Caller(3)).
+		ExtendDefaultHookField(
+			func(ctx context.Context) logger.Field {
+				return logger.String("deft_key1", "deft_val1")
+			},
+		)
 }
 
 func Test_LoggerNormal(t *testing.T) {
@@ -82,7 +82,7 @@ func Test_Logger_Context(t *testing.T) {
 		}
 		return logger.String("ctx_key", s)
 	}
-	logger.ExtendHookFunc(ctxValuer).
+	logger.ExtendHookField(ctxValuer).
 		OnDebugContext(ctx).
 		Msg("with context")
 }

@@ -272,8 +272,8 @@ func (l *Log) Named(name string) *Log {
 	}
 }
 
-// Clone the log.
-func (l *Log) Clone() *Log {
+// clone the log.
+func (l *Log) clone() *Log {
 	clone := *l.log
 	return &Log{
 		log:        &clone,

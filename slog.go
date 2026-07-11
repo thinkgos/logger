@@ -105,7 +105,7 @@ func (h *SlogHandler) WithGroup(name string) slog.Handler {
 
 func (h *SlogHandler) clone() *SlogHandler {
 	h2 := &SlogHandler{
-		logger:  h.logger.With(),
+		logger:  h.logger.clone(),
 		prefix:  h.prefix,
 		timeKey: h.timeKey,
 	}

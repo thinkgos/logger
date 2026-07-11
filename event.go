@@ -117,11 +117,14 @@ func (e *Event) Hook(hs ...Hook) *Event {
 	return e
 }
 
-func (e *Event) HookFunc(f HookFunc) *Event {
+// HookFunc hook function immediately.
+func (e *Event) HookFunc(hs ...HookFunc) *Event {
 	if e == nil {
 		return e
 	}
-	f(e)
+	for _, f := range hs {
+		f(e)
+	}
 	return e
 }
 
@@ -132,6 +135,30 @@ func (e *Event) HookField(hs ...HookField) *Event {
 	}
 	for _, f := range hs {
 		f.RunHook(e)
+	}
+	return e
+}
+
+// HookIf hook conditionally immediately.
+func (e *Event) HookIf(b bool, hs ...Hook) *Event {
+	if b {
+		e.Hook(hs...)
+	}
+	return e
+}
+
+// HookFuncIf hook conditionally immediately.
+func (e *Event) HookFuncIf(b bool, hs ...HookFunc) *Event {
+	if b {
+		e.HookFunc(hs...)
+	}
+	return e
+}
+
+// HookFieldIf hook conditionally immediately.
+func (e *Event) HookFieldIf(b bool, hs ...HookField) *Event {
+	if b {
+		e.HookField(hs...)
 	}
 	return e
 }
